@@ -569,6 +569,9 @@
             document.getElementById('dataCulto').value = hoje;
             updateCultoInfo();
             
+            // Carregar responsáveis adicionados do Firebase
+            carregarResponsaveisAdicionados();
+            
             // Tentar carregar liturgia salva para hoje
             carregarLiturgiaSalva();
         });
@@ -596,7 +599,7 @@
                     isAdmin = true;
                     document.getElementById('adminBtn').innerHTML = '🔓 Admin (Logado)';
                     document.getElementById('adminBtn').classList.add('logged');
-                    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+                    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'inline-block');
                     showToast('Acesso de administrador liberado!');
                     renderizarTabela();
                 } else if (senha !== null) {
@@ -619,7 +622,10 @@
             }
         }
 
-        function gerarSelectResponsavel(valorAtual = '') {
+        function gerarSelectResponsavel(valorAtual = '', index = null) {
+            // Verificar se o valor atual não está na lista (foi digitado manualmente)
+            const valorNaLista = responsaveis.includes(valorAtual) || valorAtual === '' || valorAtual.startsWith('---');
+            
             let options = responsaveis.map(r => {
                 if (r === '---' || r.startsWith('---')) {
                     const label = r === '---' ? '──────────' : r.replace('---', '').trim();
@@ -627,7 +633,56 @@
                 }
                 return `<option value="${r}" ${r === valorAtual ? 'selected' : ''}>${r || '-- Selecione --'}</option>`;
             }).join('');
-            return `<select onchange="if(this.value==='Outro...'){this.value=prompt('Digite o nome:') || '';}">${options}</select>`;
+            
+            // Se o valor atual não está na lista, adicionar como opção
+            if (!valorNaLista && valorAtual) {
+                options = `<option value="${valorAtual}" selected>${valorAtual}</option>` + options;
+            }
+            
+            if (index !== null) {
+                return `<select onchange="selecionarResponsavel(${index}, this)">${options}</select>`;
+            }
+            return `<select>${options}</select>`;
+        }
+
+        // Lista de responsáveis adicionados manualmente (temporários)
+        let responsaveisAdicionados = [];
+
+        function selecionarResponsavel(index, selectElement) {
+            let valor = selectElement.value;
+            
+            if (valor === 'Outro...') {
+                const novoNome = prompt('Digite o nome do responsável:');
+                if (novoNome && novoNome.trim() !== '') {
+                    valor = novoNome.trim();
+                    
+                    // Verificar se já existe na lista original ou nos adicionados
+                    const jaExiste = responsaveis.includes(valor) || responsaveisAdicionados.includes(valor);
+                    
+                    if (jaExiste) {
+                        showToast(`"${valor}" já está na lista! Selecione no dropdown.`, true);
+                        renderizarTabela();
+                        return;
+                    }
+                    
+                    // Adicionar à lista temporária
+                    responsaveisAdicionados.push(valor);
+                    
+                    // Inserir na lista principal antes de "Outro..."
+                    const outroIndex = responsaveis.indexOf('Outro...');
+                    if (outroIndex > -1) {
+                        responsaveis.splice(outroIndex, 0, valor);
+                    }
+                    
+                    showToast(`"${valor}" adicionado à lista!`);
+                } else {
+                    // Cancelou ou não digitou nada
+                    valor = liturgiaItens[index].responsavel || '';
+                }
+            }
+            
+            atualizarItem(index, 'responsavel', valor);
+            renderizarTabela();
         }
 
         function adicionarLinha(atividade = '', responsavel = '', duracao = 5) {
@@ -662,7 +717,7 @@
                                        placeholder="Nome da atividade">
                             </td>
                             <td>
-                                ${gerarSelectResponsavel(item.responsavel).replace('<select', `<select onchange="atualizarItem(${index}, 'responsavel', this.value); if(this.value==='Outro...'){this.value=prompt('Digite o nome:') || '';atualizarItem(${index}, 'responsavel', this.value);}" `)}
+                                ${gerarSelectResponsavel(item.responsavel, index)}
                             </td>
                             <td class="duracao-cell">
                                 <input type="number" value="${item.duracao}" min="1" max="120"
@@ -733,6 +788,10 @@
             showToast('Liturgia limpa!');
         }
 
+        // Variável para detectar mudanças
+        let liturgiaSalva = null;
+        let ultimoSalvamento = null;
+
         function salvarLiturgia() {
             if (!isAdmin) {
                 showToast('Apenas administradores podem salvar!', true);
@@ -752,6 +811,13 @@
                 return;
             }
 
+            // Verificar se houve mudança
+            const dadosAtuais = JSON.stringify({ horaInicio, itens: liturgiaItens });
+            if (liturgiaSalva === dadosAtuais) {
+                showToast('Liturgia já está salva! Nenhuma alteração detectada.', true);
+                return;
+            }
+
             const chave = `${data}_${tipo.replace(/\s/g, '_')}`;
             const dados = {
                 data,
@@ -762,8 +828,50 @@
             };
 
             liturgiaRef.child(chave).set(dados)
-                .then(() => showToast('Liturgia salva com sucesso!'))
+                .then(() => {
+                    liturgiaSalva = dadosAtuais;
+                    showToast('Liturgia salva com sucesso!');
+                    
+                    // Salvar responsáveis adicionados no Firebase
+                    if (responsaveisAdicionados.length > 0) {
+                        salvarResponsaveisAdicionados();
+                    }
+                })
                 .catch(err => showToast('Erro ao salvar: ' + err.message, true));
+        }
+
+        // Salvar responsáveis adicionados no Firebase
+        function salvarResponsaveisAdicionados() {
+            const responsaveisRef = database.ref('responsaveis_liturgia');
+            responsaveisRef.once('value').then(snapshot => {
+                let lista = snapshot.val() || [];
+                responsaveisAdicionados.forEach(nome => {
+                    if (!lista.includes(nome)) {
+                        lista.push(nome);
+                    }
+                });
+                responsaveisRef.set(lista);
+            });
+        }
+
+        // Carregar responsáveis adicionados do Firebase
+        function carregarResponsaveisAdicionados() {
+            const responsaveisRef = database.ref('responsaveis_liturgia');
+            responsaveisRef.once('value').then(snapshot => {
+                const lista = snapshot.val() || [];
+                lista.forEach(nome => {
+                    if (!responsaveis.includes(nome)) {
+                        const outroIndex = responsaveis.indexOf('Outro...');
+                        if (outroIndex > -1) {
+                            responsaveis.splice(outroIndex, 0, nome);
+                        }
+                        responsaveisAdicionados.push(nome);
+                    }
+                });
+                if (lista.length > 0) {
+                    console.log('Responsáveis carregados:', lista.length);
+                }
+            });
         }
 
         function carregarLiturgiaSalva() {
@@ -780,11 +888,16 @@
                     if (dados) {
                         liturgiaItens = dados.itens || [];
                         document.getElementById('horaInicio').value = dados.horaInicio || '18:00';
+                        
+                        // Marcar como salvo para detectar mudanças
+                        liturgiaSalva = JSON.stringify({ horaInicio: dados.horaInicio, itens: liturgiaItens });
+                        
                         renderizarTabela();
                         showToast('Liturgia carregada!');
                     } else {
                         // Não tem liturgia salva para esta data/tipo
                         liturgiaItens = [];
+                        liturgiaSalva = null;
                         renderizarTabela();
                     }
                 })
