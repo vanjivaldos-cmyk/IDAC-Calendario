@@ -21,6 +21,12 @@
             text-align: center;
             margin-bottom: 20px;
         }
+        .header-logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.4));
+        }
         .header h1 {
             font-size: 2.2rem;
             color: #ffd700;
@@ -174,6 +180,13 @@
         }
         .day.has-event:hover {
             background: rgba(255,215,0,0.25);
+        }
+        .day.filtered-out {
+            opacity: 0.3;
+        }
+        .day.filtered-match {
+            background: rgba(34,197,94,0.3) !important;
+            border: 2px solid #22c55e !important;
         }
         .day .day-number {
             font-weight: bold;
@@ -394,6 +407,85 @@
             text-align: center;
         }
         
+        /* Cards de eventos por mês */
+        .events-by-month {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 15px;
+        }
+        .month-events-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .month-events-header {
+            background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,215,0,0.1));
+            padding: 10px 15px;
+            font-weight: bold;
+            color: #ffd700;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .month-events-header .event-count {
+            background: #ffd700;
+            color: #1a1a2e;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+        .month-events-body {
+            padding: 10px;
+        }
+        .month-event-item {
+            display: flex;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85rem;
+            align-items: center;
+            gap: 10px;
+        }
+        .month-event-item:last-child {
+            border-bottom: none;
+        }
+        .month-event-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .event-day {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+        .event-info {
+            flex: 1;
+        }
+        .event-info .event-title {
+            color: #fff;
+            font-weight: 500;
+        }
+        .event-info .event-details {
+            color: #a0a0a0;
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+        .event-actions-mini {
+            display: flex;
+            gap: 3px;
+        }
+        .event-actions-mini button {
+            padding: 3px 6px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        
         /* Filtros com Checkboxes - Dropdown Style */
         .filters-container {
             background: rgba(255,255,255,0.05);
@@ -573,6 +665,12 @@
                 font-size: 0.7rem !important;
             }
             
+            .header-logo {
+                width: 50px !important;
+                height: 50px !important;
+                margin-bottom: 5px !important;
+            }
+            
             /* Esconder elementos não necessários na impressão */
             .toolbar, .sync-status, .instructions, .legend, 
             .events-list, .modal-overlay, .toast {
@@ -731,30 +829,60 @@
                 display: none !important;
             }
             
-            body.print-list-only .events-table {
-                font-size: 0.75rem !important;
-                width: 100% !important;
+            body.print-list-only .events-by-month {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
             }
             
-            body.print-list-only .events-table th {
+            body.print-list-only .month-events-card {
+                border: 1px solid #ccc !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            body.print-list-only .month-events-header {
                 background: #1a1a2e !important;
                 color: white !important;
-                padding: 8px 5px !important;
-                border: 1px solid #ccc !important;
+                padding: 5px 10px !important;
+                font-size: 0.8rem !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
             
-            body.print-list-only .events-table td {
-                padding: 6px 5px !important;
-                border: 1px solid #ccc !important;
+            body.print-list-only .month-events-header .event-count {
+                background: #ffd700 !important;
+                color: #1a1a2e !important;
             }
             
-            body.print-list-only .events-table tr:nth-child(even) {
-                background: #f5f5f5 !important;
+            body.print-list-only .month-events-body {
+                padding: 5px !important;
             }
             
-            body.print-list-only .events-table .actions {
+            body.print-list-only .month-event-item {
+                padding: 3px 5px !important;
+                font-size: 0.65rem !important;
+                border-bottom: 1px solid #eee !important;
+            }
+            
+            body.print-list-only .event-day {
+                background: #f0f0f0 !important;
+                color: #333 !important;
+                padding: 2px 5px !important;
+                font-size: 0.6rem !important;
+            }
+            
+            body.print-list-only .event-info .event-title {
+                color: #333 !important;
+                font-size: 0.65rem !important;
+            }
+            
+            body.print-list-only .event-info .event-details {
+                font-size: 0.55rem !important;
+                color: #666 !important;
+            }
+            
+            body.print-list-only .event-actions-mini {
                 display: none !important;
             }
             
@@ -770,6 +898,7 @@
 </head>
 <body>
     <div class="header">
+        <img src="https://raw.githubusercontent.com/vanjivaldos-cmyk/games-idac/main/images/LogoGame.png" alt="Logo IDAC" class="header-logo" onerror="this.style.display='none'">
         <h1>📅 Calendário IDAC 2026</h1>
         <h2>Igreja de Deus Águas Claras - Programação Anual</h2>
     </div>
@@ -1531,6 +1660,55 @@
             }
             updateEventsTable();
             updateFilterCounts();
+            applyFiltersToCalendar();
+        }
+        
+        function applyFiltersToCalendar() {
+            const hasFilters = selectedMonths.length > 0 || selectedTypes.length > 0 || selectedResps.length > 0;
+            
+            // Percorrer todos os dias do calendário
+            document.querySelectorAll('.day:not(.empty)').forEach(dayEl => {
+                // Remover classes anteriores
+                dayEl.classList.remove('filtered-out', 'filtered-match');
+                
+                if (!hasFilters) return; // Se não há filtros, não faz nada
+                
+                // Pegar a data deste dia
+                const dayNumber = dayEl.querySelector('.day-number')?.textContent;
+                if (!dayNumber) return;
+                
+                // Encontrar o mês deste dia (pelo card pai)
+                const monthCard = dayEl.closest('.month-card');
+                if (!monthCard) return;
+                
+                const monthHeader = monthCard.querySelector('.month-header')?.textContent;
+                const monthIndex = monthNames.indexOf(monthHeader);
+                if (monthIndex === -1) return;
+                
+                const dateKey = `2026-${String(monthIndex + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+                const dayEvents = events[dateKey] || [];
+                
+                // Verificar se algum evento deste dia passa nos filtros
+                let hasMatchingEvent = false;
+                
+                if (dayEvents.length > 0) {
+                    hasMatchingEvent = dayEvents.some(event => {
+                        let matchMonth = selectedMonths.length === 0 || selectedMonths.includes(dateKey.substring(0, 7));
+                        let matchType = selectedTypes.length === 0 || selectedTypes.includes(event.type);
+                        let matchResp = selectedResps.length === 0 || selectedResps.includes(event.resp);
+                        return matchMonth && matchType && matchResp;
+                    });
+                }
+                
+                // Aplicar classe visual
+                if (dayEvents.length > 0) {
+                    if (hasMatchingEvent) {
+                        dayEl.classList.add('filtered-match');
+                    } else {
+                        dayEl.classList.add('filtered-out');
+                    }
+                }
+            });
         }
 
         function clearFilters() {
@@ -1540,6 +1718,7 @@
             buildFilterOptions();
             updateEventsTable();
             updateFilterCounts();
+            applyFiltersToCalendar();
         }
 
         function toggleFilterSection(section, titleElement) {
@@ -1575,7 +1754,7 @@
             }
         }
 
-        // ==================== TABELA DE EVENTOS ====================
+        // ==================== LISTA DE EVENTOS POR MÊS ====================
         function updateEventsTable() {
             const container = document.getElementById('eventsTableContainer');
             
@@ -1602,36 +1781,61 @@
                 return;
             }
             
-            container.innerHTML = `
-                <p style="text-align: right; font-size: 0.8rem; color: #a0a0a0; margin-bottom: 10px;">📊 ${allEvents.length} evento(s) encontrado(s)</p>
-                <table class="events-table">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Evento</th>
-                            <th>Horário</th>
-                            <th>Responsável</th>
-                            ${isAdmin ? '<th>Ações</th>' : ''}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${allEvents.map(event => `
-                            <tr>
-                                <td>${formatDateBR(event.date)}</td>
-                                <td>${event.title}</td>
-                                <td>${event.time || '-'}</td>
-                                <td>${event.resp || '-'}</td>
-                                ${isAdmin ? `
-                                <td class="actions">
-                                    <button class="btn-edit-small" onclick="openEditModal('${event.date}', '${event.id}')">✏️</button>
-                                    <button class="btn-delete-small" onclick="deleteEventFromTable('${event.date}', '${event.id}')">🗑️</button>
-                                </td>
-                                ` : ''}
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+            // Agrupar eventos por mês
+            const eventsByMonth = {};
+            allEvents.forEach(event => {
+                const monthKey = event.date.substring(0, 7);
+                if (!eventsByMonth[monthKey]) {
+                    eventsByMonth[monthKey] = [];
+                }
+                eventsByMonth[monthKey].push(event);
+            });
+            
+            // Gerar HTML dos cards
+            let html = `<p style="text-align: right; font-size: 0.8rem; color: #a0a0a0; margin-bottom: 15px;">📊 ${allEvents.length} evento(s) encontrado(s)</p>`;
+            html += '<div class="events-by-month">';
+            
+            Object.keys(eventsByMonth).sort().forEach(monthKey => {
+                const monthEvents = eventsByMonth[monthKey];
+                const [year, month] = monthKey.split('-');
+                const monthName = monthNames[parseInt(month) - 1];
+                
+                html += `
+                    <div class="month-events-card">
+                        <div class="month-events-header">
+                            <span>📅 ${monthName}</span>
+                            <span class="event-count">${monthEvents.length} evento(s)</span>
+                        </div>
+                        <div class="month-events-body">
+                            ${monthEvents.map(event => {
+                                const day = event.date.split('-')[2];
+                                return `
+                                    <div class="month-event-item">
+                                        <span class="event-day">${parseInt(day)}</span>
+                                        <div class="event-info">
+                                            <div class="event-title">${event.title}</div>
+                                            <div class="event-details">
+                                                ${event.time ? '⏰ ' + event.time : ''}
+                                                ${event.time && event.resp ? ' • ' : ''}
+                                                ${event.resp ? '👤 ' + event.resp : ''}
+                                            </div>
+                                        </div>
+                                        ${isAdmin ? `
+                                        <div class="event-actions-mini">
+                                            <button class="btn-edit-small" onclick="openEditModal('${event.date}', '${event.id}')">✏️</button>
+                                            <button class="btn-delete-small" onclick="deleteEventFromTable('${event.date}', '${event.id}')">🗑️</button>
+                                        </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
         }
 
         // ==================== MODAIS ====================
