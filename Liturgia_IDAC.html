@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liturgia IDAC</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header-logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.4));
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 5px;
+        }
+        .header h2 {
+            font-size: 1rem;
+            color: #a0a0a0;
+            font-weight: normal;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        /* Configuração do Culto */
+        .config-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .config-section h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        .config-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .config-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .config-field label {
+            color: #a0a0a0;
+            font-size: 0.85rem;
+        }
+        .config-field input,
+        .config-field select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1rem;
+        }
+        .config-field input:focus,
+        .config-field select:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        .config-field select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+        
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .toolbar button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn-add { background: #22c55e; color: white; }
+        .btn-template { background: #8b5cf6; color: white; }
+        .btn-print { background: #3b82f6; color: white; }
+        .btn-save { background: #f59e0b; color: white; }
+        .btn-clear { background: #ef4444; color: white; }
+        .btn-admin { background: #6b7280; color: white; }
+        .btn-admin.logged { background: #22c55e; }
+        
+        .admin-only {
+            display: none;
+        }
+        
+        /* Tabela de Liturgia */
+        .liturgia-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .liturgia-table th {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        .liturgia-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .liturgia-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .liturgia-table input,
+        .liturgia-table select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.85rem;
+        }
+        .liturgia-table input:focus,
+        .liturgia-table select:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        .liturgia-table select option {
+            background: #1a1a2e;
+        }
+        .hora-cell {
+            font-weight: bold;
+            color: #4ecdc4;
+            min-width: 70px;
+        }
+        .duracao-cell {
+            width: 80px;
+        }
+        .duracao-cell input {
+            text-align: center;
+        }
+        .actions-cell {
+            width: 50px;
+            text-align: center;
+        }
+        .btn-remove {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        /* Resumo */
+        .resumo {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .resumo-item {
+            text-align: center;
+        }
+        .resumo-item .label {
+            color: #a0a0a0;
+            font-size: 0.8rem;
+        }
+        .resumo-item .value {
+            color: #ffd700;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .toast.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        .toast.error {
+            background: #ef4444;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        /* Impressão */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .toolbar, .config-section, .resumo, .actions-cell, .btn-remove {
+                display: none !important;
+            }
+            .header {
+                margin-bottom: 15px !important;
+            }
+            .header h1 {
+                color: #1a1a2e !important;
+                text-shadow: none !important;
+                font-size: 1.4rem !important;
+            }
+            .header h2 {
+                color: #666 !important;
+            }
+            .header-logo {
+                width: 60px !important;
+            }
+            .culto-info {
+                display: block !important;
+                text-align: center;
+                font-size: 1.2rem;
+                font-weight: bold;
+                color: #1a1a2e !important;
+                margin-bottom: 15px;
+                padding: 10px;
+                background: #f5f5f5 !important;
+                border-radius: 5px;
+            }
+            .liturgia-table {
+                background: white !important;
+            }
+            .liturgia-table th {
+                background: #1a1a2e !important;
+                color: white !important;
+                padding: 8px !important;
+            }
+            .liturgia-table td {
+                padding: 6px !important;
+                border: 1px solid #ccc !important;
+            }
+            .liturgia-table input,
+            .liturgia-table select {
+                border: none !important;
+                background: transparent !important;
+                color: black !important;
+                padding: 0 !important;
+            }
+            .hora-cell {
+                color: #1a1a2e !important;
+            }
+        }
+        
+        .culto-info {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://raw.githubusercontent.com/vanjivaldos-cmyk/games-idac/main/images/LogoGame.png" alt="Logo IDAC" class="header-logo" onerror="this.style.display='none'">
+        <h1>📋 Liturgia IDAC</h1>
+        <h2>Igreja de Deus Águas Claras</h2>
+    </div>
+
+    <div class="container">
+        <div class="config-section">
+            <h3>⚙️ Configuração do Culto</h3>
+            <div class="config-row">
+                <div class="config-field">
+                    <label>📅 Data</label>
+                    <input type="date" id="dataCulto" onchange="updateCultoInfo(); carregarLiturgiaSalva();">
+                </div>
+                <div class="config-field">
+                    <label>⛪ Tipo de Culto</label>
+                    <select id="tipoCulto" onchange="updateCultoInfo(); carregarLiturgiaSalva();">
+                        <option value="Domingo Manhã">Domingo Manhã</option>
+                        <option value="Domingo Noite" selected>Domingo Noite</option>
+                        <option value="Quarta-feira">Quarta-feira</option>
+                        <option value="Sexta-feira">Sexta-feira</option>
+                        <option value="Culto Especial">Culto Especial</option>
+                    </select>
+                </div>
+                <div class="config-field">
+                    <label>⏰ Horário Início</label>
+                    <input type="time" id="horaInicio" value="18:00" onchange="recalcularHorarios()">
+                </div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn-add admin-only" onclick="adicionarLinha()">➕ Adicionar Item</button>
+            <button class="btn-template admin-only" onclick="carregarTemplate()">📝 Carregar Template</button>
+            <button class="btn-save admin-only" onclick="salvarLiturgia()">💾 Salvar</button>
+            <button class="btn-print" onclick="gerarPDF()">📄 Gerar PDF</button>
+            <button class="btn-clear admin-only" onclick="limparLiturgia()">🗑️ Limpar</button>
+            <button class="btn-admin" id="adminBtn" onclick="toggleAdmin()">🔐 Admin</button>
+        </div>
+
+        <div class="culto-info" id="cultoInfo"></div>
+
+        <table class="liturgia-table">
+            <thead>
+                <tr>
+                    <th class="hora-cell">Hora</th>
+                    <th>Atividade</th>
+                    <th>Responsável</th>
+                    <th class="duracao-cell">Duração</th>
+                    <th class="actions-cell">🗑️</th>
+                </tr>
+            </thead>
+            <tbody id="liturgiaBody">
+            </tbody>
+        </table>
+
+        <div class="resumo">
+            <div class="resumo-item">
+                <div class="label">Início</div>
+                <div class="value" id="resumoInicio">--:--</div>
+            </div>
+            <div class="resumo-item">
+                <div class="label">Término Previsto</div>
+                <div class="value" id="resumoTermino">--:--</div>
+            </div>
+            <div class="resumo-item">
+                <div class="label">Duração Total</div>
+                <div class="value" id="resumoDuracao">-- min</div>
+            </div>
+            <div class="resumo-item">
+                <div class="label">Itens</div>
+                <div class="value" id="resumoItens">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_FbMpEZYn_lLZiSjGmP0sMM7XcuTn8Qw",
+            authDomain: "games-idac.firebaseapp.com",
+            databaseURL: "https://games-idac-default-rtdb.firebaseio.com",
+            projectId: "games-idac",
+            storageBucket: "games-idac.appspot.com"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const liturgiaRef = database.ref('liturgias');
+        const aniversariantesRef = database.ref('aniversariantes');
+
+        // Senha Admin
+        const SENHA_ADMIN = 'idac2026';
+        let isAdmin = false;
+
+        // Lista de responsáveis (líderes da IDAC)
+        let responsaveis = [
+            '',
+            '--- PASTORES ---',
+            'Bp. Vanjivaldo',
+            'Pra. Kélia',
+            'Pra. Nelcy',
+            'Pra. Jaqueline',
+            'Pra. Miguelina',
+            'Pra. Leonilda',
+            'Pra. Maria Pereira',
+            'Pr. Tadeu',
+            'Pr. Domício',
+            '--- PRESBÍTERO ---',
+            'Pb. José',
+            '--- EVANGELISTA ---',
+            'Ev. Silvana',
+            '--- DIÁCONOS ---',
+            'Diác. Bruno',
+            'Diác. Junio',
+            'Diác. Marcos',
+            'Diac. Eli Regina',
+            'Diac. Eunice',
+            'Diac. Kêmille',
+            'Diac. Myriam',
+            'Diac. Selene',
+            '--- MINISTÉRIOS ---',
+            'Min. Louvor',
+            'Min. KIDS',
+            'Min. Teens',
+            'Min. Intercessão',
+            'Min. Mulheres',
+            'Min. Homens',
+            'MÍDIA',
+            'Louvor e Artes',
+            '---',
+            'Outro...'
+        ];
+        
+        // Atividades padrão (template)
+        const templateDomingoNoite = [
+            { atividade: 'Prelúdio Musical com Louvor Multimídia', responsavel: 'MÍDIA', duracao: 5 },
+            { atividade: 'Abertura com Saudação aos Presentes', responsavel: 'Pra. Jaqueline', duracao: 2 },
+            { atividade: 'Louvor de Celebração', responsavel: 'Min. Louvor', duracao: 20 },
+            { atividade: 'Oração pelos enfermos', responsavel: 'Ev. Silvana', duracao: 5 },
+            { atividade: 'Avisos da Semana', responsavel: 'Diác. Junio', duracao: 10 },
+            { atividade: 'Ofertório', responsavel: 'Pra. Miguelina', duracao: 10 },
+            { atividade: 'Momento KIDS', responsavel: 'Diác. Bruno', duracao: 5 },
+            { atividade: 'Ministração da Palavra', responsavel: 'Bp. Vanjivaldo', duracao: 45 },
+            { atividade: 'Momento Convite-Apelo (oração pela semana)', responsavel: 'Pra. Nelcy', duracao: 15 },
+            { atividade: 'Benção Apostólica', responsavel: 'Bp. Vanjivaldo', duracao: 10 }
+        ];
+
+        let liturgiaItens = [];
+
+        // Função para gerar PDF
+        function gerarPDF() {
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            
+            if (liturgiaItens.length === 0) {
+                showToast('Adicione itens à liturgia primeiro!', true);
+                return;
+            }
+            
+            // Formatar data
+            const dataFormatada = data ? new Date(data + 'T12:00:00').toLocaleDateString('pt-BR') : '';
+            
+            // Criar elemento temporário para o PDF
+            const pdfContent = document.createElement('div');
+            pdfContent.innerHTML = `
+                <div style="font-family: Arial, sans-serif; padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="https://raw.githubusercontent.com/vanjivaldos-cmyk/games-idac/main/images/LogoGame.png" 
+                             style="width: 70px; height: auto; margin-bottom: 10px;" 
+                             onerror="this.style.display='none'">
+                        <h1 style="color: #1a1a2e; margin: 5px 0; font-size: 1.5rem;">📋 Liturgia IDAC</h1>
+                        <h2 style="color: #666; margin: 5px 0; font-size: 1rem; font-weight: normal;">Igreja de Deus Águas Claras</h2>
+                        <div style="background: #f5f5f5; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                            <strong style="font-size: 1.1rem;">${dataFormatada} - ${tipo}</strong>
+                        </div>
+                    </div>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                        <thead>
+                            <tr style="background: #1a1a2e; color: white;">
+                                <th style="padding: 10px; text-align: left; border: 1px solid #ccc;">Hora</th>
+                                <th style="padding: 10px; text-align: left; border: 1px solid #ccc;">Atividade</th>
+                                <th style="padding: 10px; text-align: left; border: 1px solid #ccc;">Responsável</th>
+                                <th style="padding: 10px; text-align: center; border: 1px solid #ccc;">Duração</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${gerarLinhasPDF()}
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top: 20px; display: flex; justify-content: space-around; background: #f5f5f5; padding: 15px; border-radius: 5px;">
+                        <div style="text-align: center;">
+                            <div style="color: #666; font-size: 0.8rem;">Início</div>
+                            <div style="color: #1a1a2e; font-size: 1.2rem; font-weight: bold;">${document.getElementById('resumoInicio').textContent}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #666; font-size: 0.8rem;">Término</div>
+                            <div style="color: #1a1a2e; font-size: 1.2rem; font-weight: bold;">${document.getElementById('resumoTermino').textContent}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #666; font-size: 0.8rem;">Duração Total</div>
+                            <div style="color: #1a1a2e; font-size: 1.2rem; font-weight: bold;">${document.getElementById('resumoDuracao').textContent}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Configurações do PDF
+            const opt = {
+                margin: 10,
+                filename: `Liturgia_IDAC_${data}_${tipo.replace(/\s/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            showToast('Gerando PDF...');
+            
+            html2pdf().set(opt).from(pdfContent).save().then(() => {
+                showToast('PDF gerado com sucesso!');
+            });
+        }
+
+        function gerarLinhasPDF() {
+            const horaInicio = document.getElementById('horaInicio').value;
+            let [horas, minutos] = horaInicio.split(':').map(Number);
+            
+            return liturgiaItens.map((item, index) => {
+                const horaAtual = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+                
+                // Calcular próximo horário
+                minutos += item.duracao;
+                while (minutos >= 60) {
+                    minutos -= 60;
+                    horas++;
+                }
+                
+                const bgColor = index % 2 === 0 ? '#ffffff' : '#f9f9f9';
+                
+                return `
+                    <tr style="background: ${bgColor};">
+                        <td style="padding: 8px; border: 1px solid #ccc; font-weight: bold; color: #1a1a2e;">${horaAtual}</td>
+                        <td style="padding: 8px; border: 1px solid #ccc;">${item.atividade}</td>
+                        <td style="padding: 8px; border: 1px solid #ccc;">${item.responsavel}</td>
+                        <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">${item.duracao} min</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            // Definir data de hoje
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('dataCulto').value = hoje;
+            updateCultoInfo();
+            
+            // Tentar carregar liturgia salva para hoje
+            carregarLiturgiaSalva();
+        });
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show' + (isError ? ' error' : '');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function toggleAdmin() {
+            if (isAdmin) {
+                // Logout
+                isAdmin = false;
+                document.getElementById('adminBtn').innerHTML = '🔐 Admin';
+                document.getElementById('adminBtn').classList.remove('logged');
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+                showToast('Você saiu do modo administrador');
+                renderizarTabela();
+            } else {
+                // Login
+                const senha = prompt('Digite a senha de administrador:');
+                if (senha === SENHA_ADMIN) {
+                    isAdmin = true;
+                    document.getElementById('adminBtn').innerHTML = '🔓 Admin (Logado)';
+                    document.getElementById('adminBtn').classList.add('logged');
+                    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+                    showToast('Acesso de administrador liberado!');
+                    renderizarTabela();
+                } else if (senha !== null) {
+                    showToast('Senha incorreta!', true);
+                }
+            }
+        }
+
+        function updateCultoInfo() {
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            if (data) {
+                const dataFormatada = new Date(data + 'T12:00:00').toLocaleDateString('pt-BR', {
+                    weekday: 'long',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                document.getElementById('cultoInfo').innerHTML = `📅 ${dataFormatada} - ${tipo}`;
+            }
+        }
+
+        function gerarSelectResponsavel(valorAtual = '') {
+            let options = responsaveis.map(r => {
+                if (r === '---' || r.startsWith('---')) {
+                    const label = r === '---' ? '──────────' : r.replace('---', '').trim();
+                    return `<option disabled style="font-weight:bold; color:#ffd700;">── ${label} ──</option>`;
+                }
+                return `<option value="${r}" ${r === valorAtual ? 'selected' : ''}>${r || '-- Selecione --'}</option>`;
+            }).join('');
+            return `<select onchange="if(this.value==='Outro...'){this.value=prompt('Digite o nome:') || '';}">${options}</select>`;
+        }
+
+        function adicionarLinha(atividade = '', responsavel = '', duracao = 5) {
+            liturgiaItens.push({ atividade, responsavel, duracao });
+            renderizarTabela();
+        }
+
+        function removerLinha(index) {
+            liturgiaItens.splice(index, 1);
+            renderizarTabela();
+        }
+
+        function renderizarTabela() {
+            const tbody = document.getElementById('liturgiaBody');
+            const horaInicio = document.getElementById('horaInicio').value;
+            let [horas, minutos] = horaInicio.split(':').map(Number);
+            
+            let html = '';
+            let duracaoTotal = 0;
+
+            liturgiaItens.forEach((item, index) => {
+                const horaAtual = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+                
+                if (isAdmin) {
+                    // Modo edição (Admin)
+                    html += `
+                        <tr>
+                            <td class="hora-cell">${horaAtual}</td>
+                            <td>
+                                <input type="text" value="${item.atividade}" 
+                                       onchange="atualizarItem(${index}, 'atividade', this.value)"
+                                       placeholder="Nome da atividade">
+                            </td>
+                            <td>
+                                ${gerarSelectResponsavel(item.responsavel).replace('<select', `<select onchange="atualizarItem(${index}, 'responsavel', this.value); if(this.value==='Outro...'){this.value=prompt('Digite o nome:') || '';atualizarItem(${index}, 'responsavel', this.value);}" `)}
+                            </td>
+                            <td class="duracao-cell">
+                                <input type="number" value="${item.duracao}" min="1" max="120"
+                                       onchange="atualizarItem(${index}, 'duracao', parseInt(this.value) || 5)">
+                            </td>
+                            <td class="actions-cell">
+                                <button class="btn-remove" onclick="removerLinha(${index})">✕</button>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    // Modo visualização (público)
+                    html += `
+                        <tr>
+                            <td class="hora-cell">${horaAtual}</td>
+                            <td>${item.atividade || '-'}</td>
+                            <td>${item.responsavel || '-'}</td>
+                            <td class="duracao-cell" style="text-align:center">${item.duracao} min</td>
+                            <td class="actions-cell"></td>
+                        </tr>
+                    `;
+                }
+                
+                // Calcular próximo horário
+                minutos += item.duracao;
+                while (minutos >= 60) {
+                    minutos -= 60;
+                    horas++;
+                }
+                duracaoTotal += item.duracao;
+            });
+
+            tbody.innerHTML = html;
+            
+            // Atualizar resumo
+            const horaTermino = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+            document.getElementById('resumoInicio').textContent = horaInicio;
+            document.getElementById('resumoTermino').textContent = horaTermino;
+            document.getElementById('resumoDuracao').textContent = `${duracaoTotal} min`;
+            document.getElementById('resumoItens').textContent = liturgiaItens.length;
+        }
+
+        function atualizarItem(index, campo, valor) {
+            liturgiaItens[index][campo] = valor;
+            if (campo === 'duracao') {
+                renderizarTabela(); // Recalcular horários
+            }
+        }
+
+        function recalcularHorarios() {
+            renderizarTabela();
+        }
+
+        function carregarTemplate() {
+            if (liturgiaItens.length > 0) {
+                if (!confirm('Isso vai substituir a liturgia atual. Continuar?')) return;
+            }
+            liturgiaItens = JSON.parse(JSON.stringify(templateDomingoNoite));
+            renderizarTabela();
+            showToast('Template carregado!');
+        }
+
+        function limparLiturgia() {
+            if (liturgiaItens.length === 0) return;
+            if (!confirm('Limpar toda a liturgia?')) return;
+            liturgiaItens = [];
+            renderizarTabela();
+            showToast('Liturgia limpa!');
+        }
+
+        function salvarLiturgia() {
+            if (!isAdmin) {
+                showToast('Apenas administradores podem salvar!', true);
+                return;
+            }
+            
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const horaInicio = document.getElementById('horaInicio').value;
+            
+            if (!data) {
+                showToast('Selecione uma data!', true);
+                return;
+            }
+            if (liturgiaItens.length === 0) {
+                showToast('Adicione itens à liturgia!', true);
+                return;
+            }
+
+            const chave = `${data}_${tipo.replace(/\s/g, '_')}`;
+            const dados = {
+                data,
+                tipo,
+                horaInicio,
+                itens: liturgiaItens,
+                atualizadoEm: new Date().toISOString()
+            };
+
+            liturgiaRef.child(chave).set(dados)
+                .then(() => showToast('Liturgia salva com sucesso!'))
+                .catch(err => showToast('Erro ao salvar: ' + err.message, true));
+        }
+
+        function carregarLiturgiaSalva() {
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            
+            if (!data) return;
+            
+            const chave = `${data}_${tipo.replace(/\s/g, '_')}`;
+            
+            liturgiaRef.child(chave).once('value')
+                .then(snapshot => {
+                    const dados = snapshot.val();
+                    if (dados) {
+                        liturgiaItens = dados.itens || [];
+                        document.getElementById('horaInicio').value = dados.horaInicio || '18:00';
+                        renderizarTabela();
+                        showToast('Liturgia carregada!');
+                    } else {
+                        // Não tem liturgia salva para esta data/tipo
+                        liturgiaItens = [];
+                        renderizarTabela();
+                    }
+                })
+                .catch(err => {
+                    console.log('Erro ao carregar:', err);
+                });
+        }
+    </script>
+</body>
+</html>
