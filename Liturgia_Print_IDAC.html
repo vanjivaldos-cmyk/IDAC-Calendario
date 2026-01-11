@@ -6,6 +6,7 @@
     <title>Imprimir Liturgia - IDAC</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -258,7 +259,7 @@
                 <option value="Ceia do Senhor">Ceia do Senhor</option>
                 <option value="Culto Especial">Culto Especial</option>
             </select>
-            <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+            <button class="btn-print" onclick="gerarPDF()">🖨️ Imprimir / Salvar PDF</button>
             <button class="btn-back" onclick="voltarPagina()">← Voltar</button>
         </div>
         
@@ -308,6 +309,52 @@
                     window.location.href = 'Liturgia_IDAC.html';
                 }
             }
+        }
+
+        // Abreviações dos tipos de culto
+        const tipoAbreviado = {
+            'Domingo Manhã': 'Man',
+            'Domingo Noite': 'Noi',
+            'Quarta-feira': 'Qua',
+            'Ceia do Senhor': 'Ceia',
+            'Culto Especial': 'Esp'
+        };
+
+        // Função para gerar PDF com nome automático
+        function gerarPDF() {
+            const data = dataCultoEl.value;
+            const tipo = tipoCultoEl.value;
+            
+            if (!data) {
+                alert('Selecione uma data!');
+                return;
+            }
+            
+            // Formatar data: 110126 (ddmmaa)
+            const dataObj = new Date(data + 'T12:00:00');
+            const dia = String(dataObj.getDate()).padStart(2, '0');
+            const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
+            const ano = String(dataObj.getFullYear()).slice(-2);
+            const dataFormatada = `${dia}${mes}${ano}`;
+            
+            // Abreviação do tipo
+            const tipoAbrev = tipoAbreviado[tipo] || tipo.substring(0, 3);
+            
+            // Nome do arquivo: Liturgia_IDAC_110126_Noi.pdf
+            const nomeArquivo = `Liturgia_IDAC_${dataFormatada}_${tipoAbrev}.pdf`;
+            
+            const opt = {
+                margin: 10,
+                filename: nomeArquivo,
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: { 
+                    scale: 2,
+                    backgroundColor: '#1a1a2e'
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(printContentEl).save();
         }
 
         // Eventos
