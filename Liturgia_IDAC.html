@@ -305,6 +305,333 @@
         .culto-info {
             display: none;
         }
+        
+        /* Modal de Notificações e Contatos */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-header h2 {
+            color: #ffd700;
+            font-size: 1.3rem;
+        }
+        .modal-close {
+            background: #ef4444;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        
+        /* Lista de escalados para notificar */
+        .escalados-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .escalado-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .escalado-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        .escalado-nome {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .escalado-atividade {
+            color: #a0a0a0;
+            font-size: 0.85rem;
+            margin-top: 3px;
+        }
+        .escalado-telefone {
+            color: #4ecdc4;
+            font-size: 0.85rem;
+            margin-top: 3px;
+        }
+        .escalado-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .btn-whatsapp {
+            background: #25d366;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-whatsapp:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+        .btn-whatsapp.enviado {
+            background: #22c55e;
+        }
+        .check-enviado {
+            color: #22c55e;
+            font-size: 1.2rem;
+        }
+        
+        /* Lista de contatos */
+        .contatos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .contato-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: 1fr 180px auto;
+            gap: 10px;
+            align-items: center;
+        }
+        .contato-item input {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .contato-item input:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        .contato-nome {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .btn-sync {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-salvar-contatos {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 15px;
+            width: 100%;
+        }
+        
+        /* Mensagem template */
+        .mensagem-template {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .mensagem-template label {
+            color: #a0a0a0;
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .mensagem-template textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+        .mensagem-template textarea:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        .variaveis-help {
+            color: #a0a0a0;
+            font-size: 0.75rem;
+            margin-top: 8px;
+        }
+        .variaveis-help code {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #4ecdc4;
+        }
+        
+        /* Botões de ação do modal */
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .modal-actions button {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        /* Status sem telefone */
+        .sem-telefone {
+            color: #ef4444;
+            font-size: 0.8rem;
+        }
+        
+        /* Formulário novo contato */
+        .novo-contato-form {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .novo-contato-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+        .novo-contato-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .novo-contato-field label {
+            color: #a0a0a0;
+            font-size: 0.8rem;
+        }
+        .novo-contato-field input,
+        .novo-contato-field select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .novo-contato-field input:focus,
+        .novo-contato-field select:focus {
+            outline: none;
+            border-color: #22c55e;
+        }
+        .novo-contato-field select option {
+            background: #1a1a2e;
+        }
+        .btn-add-contato {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn-add-contato:hover {
+            background: #16a34a;
+        }
+        
+        /* Botão excluir contato */
+        .btn-excluir-contato {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-excluir-contato:hover {
+            background: #dc2626;
+        }
+        
+        /* Contador */
+        .contador-notificacoes {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .contador-item {
+            text-align: center;
+        }
+        .contador-item .numero {
+            color: #ffd700;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .contador-item .label {
+            color: #a0a0a0;
+            font-size: 0.75rem;
+        }
     </style>
 </head>
 <body>
@@ -316,7 +643,7 @@
 
     <div class="container">
         <div class="config-section">
-            <h3>⚙️ Configuração do Culto</h3>
+            <h3 class="admin-only">⚙️ Configuração do Culto</h3>
             <div class="config-row">
                 <div class="config-field">
                     <label>📅 Data</label>
@@ -332,7 +659,7 @@
                         <option value="Culto Especial">Culto Especial</option>
                     </select>
                 </div>
-                <div class="config-field">
+                <div class="config-field admin-only">
                     <label>⏰ Horário Início</label>
                     <input type="time" id="horaInicio" value="18:00" onchange="recalcularHorarios()">
                 </div>
@@ -345,6 +672,8 @@
             <button class="btn-template admin-only" style="background: #6366f1;" onclick="carregarTemplate()">📝 Novo Template</button>
             <button class="btn-save admin-only" onclick="salvarLiturgia()">💾 Salvar</button>
             <button class="btn-print" onclick="abrirImpressao()">🖨️ Imprimir / PDF</button>
+            <button class="btn-template admin-only" style="background: #25d366;" onclick="abrirModalNotificacoes()">📲 Notificar</button>
+            <button class="btn-template admin-only" style="background: #0ea5e9;" onclick="abrirModalContatos()">👥 Contatos</button>
             <button class="btn-clear admin-only" onclick="limparLiturgia()">🗑️ Limpar</button>
             <button class="btn-admin" id="adminBtn" onclick="toggleAdmin()">🔐 Admin</button>
         </div>
@@ -386,6 +715,108 @@
     </div>
 
     <div class="toast" id="toast"></div>
+
+    <!-- Modal de Notificações WhatsApp -->
+    <div class="modal-overlay" id="modalNotificacoes">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📲 Notificar Escalados via WhatsApp</h2>
+                <button class="modal-close" onclick="fecharModal('modalNotificacoes')">×</button>
+            </div>
+            
+            <div class="contador-notificacoes">
+                <div class="contador-item">
+                    <div class="numero" id="totalEscalados">0</div>
+                    <div class="label">Escalados</div>
+                </div>
+                <div class="contador-item">
+                    <div class="numero" id="comTelefone">0</div>
+                    <div class="label">Com Telefone</div>
+                </div>
+                <div class="contador-item">
+                    <div class="numero" id="jaNotificados">0</div>
+                    <div class="label">Notificados</div>
+                </div>
+            </div>
+            
+            <div class="mensagem-template">
+                <label>📝 Modelo da Mensagem:</label>
+                <textarea id="mensagemTemplate">Paz do Senhor, {nome}! 🙏
+
+Você está escalado(a) para o culto de *{tipoCulto}* no dia *{data}*:
+
+📋 *{atividade}*
+⏰ Horário previsto: *{horario}*
+
+Contamos com você! Deus abençoe! 🙌
+
+_Igreja de Deus Águas Claras - IDAC_</textarea>
+                <div class="variaveis-help">
+                    Variáveis: <code>{nome}</code> <code>{tipoCulto}</code> <code>{data}</code> <code>{atividade}</code> <code>{horario}</code>
+                </div>
+            </div>
+            
+            <div class="escalados-list" id="escaladosList">
+                <!-- Lista preenchida via JavaScript -->
+            </div>
+            
+            <div class="modal-actions">
+                <button style="background: #6b7280; color: white;" onclick="limparNotificados()">🔄 Limpar Marcações</button>
+                <button style="background: #25d366; color: white;" onclick="notificarProximo()">📲 Notificar Próximo</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Gerenciamento de Contatos -->
+    <div class="modal-overlay" id="modalContatos">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👥 Gerenciar Contatos dos Responsáveis</h2>
+                <button class="modal-close" onclick="fecharModal('modalContatos')">×</button>
+            </div>
+            
+            <!-- Formulário para adicionar novo contato -->
+            <div class="novo-contato-form" id="novoContatoForm">
+                <h4 style="color: #ffd700; margin-bottom: 10px;">➕ Adicionar Novo Contato</h4>
+                <div class="novo-contato-grid">
+                    <div class="novo-contato-field">
+                        <label>Nome completo (com título)</label>
+                        <input type="text" id="novoContatoNome" placeholder="Ex: Diác. João Silva">
+                    </div>
+                    <div class="novo-contato-field">
+                        <label>Grupo</label>
+                        <select id="novoContatoGrupo">
+                            <option value="">-- Selecione --</option>
+                            <option value="pastores">Pastores</option>
+                            <option value="evangelista">Evangelista</option>
+                            <option value="presbitero">Presbítero</option>
+                            <option value="diaconos">Diáconos</option>
+                            <option value="ministerios">Ministérios</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="novo-contato-field">
+                        <label>Telefone WhatsApp</label>
+                        <input type="tel" id="novoContatoTelefone" placeholder="(61) 99999-9999">
+                    </div>
+                    <div class="novo-contato-field" style="align-self: end;">
+                        <button class="btn-add-contato" onclick="adicionarNovoContato()">➕ Adicionar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-sync" onclick="sincronizarComAniversariantes()">🔄 Sincronizar com Aniversariantes</button>
+                <span style="color: #a0a0a0; font-size: 0.8rem; align-self: center;">Busca telefones do cadastro</span>
+            </div>
+            
+            <div class="contatos-list" id="contatosList">
+                <!-- Lista preenchida via JavaScript -->
+            </div>
+            
+            <button class="btn-salvar-contatos" onclick="salvarContatos()">💾 Salvar Contatos</button>
+        </div>
+    </div>
 
     <script>
         // Firebase Config
@@ -1144,6 +1575,572 @@
                 .catch(err => {
                     console.log('Erro ao carregar:', err);
                 });
+        }
+
+        // ========================================
+        // SISTEMA DE NOTIFICAÇÕES WHATSAPP
+        // ========================================
+        
+        // Cadastro de contatos (nome -> telefone)
+        let contatosResponsaveis = {};
+        let notificadosHoje = {}; // Controle de quem já foi notificado
+        
+        // Referência Firebase para contatos
+        const contatosRef = database.ref('contatos_responsaveis');
+        
+        // Carregar contatos do Firebase ao iniciar
+        function carregarContatos() {
+            contatosRef.once('value').then(snapshot => {
+                contatosResponsaveis = snapshot.val() || {};
+                console.log('Contatos carregados:', Object.keys(contatosResponsaveis).length);
+            }).catch(err => {
+                console.log('Erro ao carregar contatos:', err);
+            });
+        }
+        
+        // Carregar contatos ao iniciar
+        carregarContatos();
+        
+        // Abrir modal de notificações
+        function abrirModalNotificacoes() {
+            if (!isAdmin) {
+                showToast('Apenas administradores podem notificar!', true);
+                return;
+            }
+            
+            if (liturgiaItens.length === 0) {
+                showToast('Carregue uma liturgia primeiro!', true);
+                return;
+            }
+            
+            renderizarListaEscalados();
+            document.getElementById('modalNotificacoes').classList.add('active');
+        }
+        
+        // Abrir modal de contatos
+        function abrirModalContatos() {
+            if (!isAdmin) {
+                showToast('Apenas administradores podem gerenciar contatos!', true);
+                return;
+            }
+            
+            renderizarListaContatos();
+            document.getElementById('modalContatos').classList.add('active');
+        }
+        
+        // Fechar modal
+        function fecharModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        // Fechar modal ao clicar fora
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+        
+        // Normalizar nome para busca (remove prefixos como Diác., Pra., etc)
+        function normalizarNome(nome) {
+            if (!nome) return '';
+            // Remove prefixos comuns
+            return nome
+                .replace(/^(Bp\.|Pr\.|Pra\.|Pb\.|Ev\.|Diác\.|Diac\.|Min\.|Mídia)\s*/i, '')
+                .trim()
+                .toUpperCase();
+        }
+        
+        // Buscar telefone de um responsável
+        function buscarTelefone(nomeResponsavel) {
+            if (!nomeResponsavel) return null;
+            
+            // Primeiro, busca exata no cadastro de contatos
+            if (contatosResponsaveis[nomeResponsavel]) {
+                return contatosResponsaveis[nomeResponsavel];
+            }
+            
+            // Busca pelo nome normalizado
+            const nomeNorm = normalizarNome(nomeResponsavel);
+            for (const [nome, telefone] of Object.entries(contatosResponsaveis)) {
+                if (normalizarNome(nome) === nomeNorm) {
+                    return telefone;
+                }
+            }
+            
+            return null;
+        }
+        
+        // Renderizar lista de escalados para notificação
+        function renderizarListaEscalados() {
+            const container = document.getElementById('escaladosList');
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const horaInicio = document.getElementById('horaInicio').value;
+            
+            // Agrupar por responsável (evitar duplicatas)
+            const escaladosMap = {};
+            let [horas, minutos] = horaInicio.split(':').map(Number);
+            
+            liturgiaItens.forEach((item, index) => {
+                if (item.responsavel && !item.responsavel.startsWith('---') && item.responsavel !== 'Outro...') {
+                    const horaAtual = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+                    
+                    if (!escaladosMap[item.responsavel]) {
+                        escaladosMap[item.responsavel] = {
+                            nome: item.responsavel,
+                            atividades: [],
+                            horarios: [],
+                            telefone: buscarTelefone(item.responsavel)
+                        };
+                    }
+                    escaladosMap[item.responsavel].atividades.push(item.atividade);
+                    escaladosMap[item.responsavel].horarios.push(horaAtual);
+                }
+                
+                minutos += item.duracao || 0;
+                while (minutos >= 60) {
+                    minutos -= 60;
+                    horas++;
+                }
+            });
+            
+            const escalados = Object.values(escaladosMap);
+            
+            // Atualizar contadores
+            const comTelefone = escalados.filter(e => e.telefone).length;
+            const chaveNotificacao = `${data}_${tipo}`;
+            const notificados = Object.keys(notificadosHoje[chaveNotificacao] || {}).length;
+            
+            document.getElementById('totalEscalados').textContent = escalados.length;
+            document.getElementById('comTelefone').textContent = comTelefone;
+            document.getElementById('jaNotificados').textContent = notificados;
+            
+            // Renderizar lista
+            if (escalados.length === 0) {
+                container.innerHTML = '<p style="color: #a0a0a0; text-align: center;">Nenhum responsável escalado na liturgia.</p>';
+                return;
+            }
+            
+            container.innerHTML = escalados.map(escalado => {
+                const foiNotificado = notificadosHoje[chaveNotificacao]?.[escalado.nome];
+                const temTelefone = !!escalado.telefone;
+                
+                return `
+                    <div class="escalado-item">
+                        <div class="escalado-info">
+                            <div class="escalado-nome">${escalado.nome}</div>
+                            <div class="escalado-atividade">
+                                ${escalado.atividades.map((a, i) => `${escalado.horarios[i]} - ${a}`).join('<br>')}
+                            </div>
+                            ${temTelefone 
+                                ? `<div class="escalado-telefone">📱 ${formatarTelefone(escalado.telefone)}</div>`
+                                : `<div class="sem-telefone">⚠️ Sem telefone cadastrado</div>`
+                            }
+                        </div>
+                        <div class="escalado-actions">
+                            ${foiNotificado ? '<span class="check-enviado">✓</span>' : ''}
+                            <button class="btn-whatsapp ${foiNotificado ? 'enviado' : ''}" 
+                                    onclick="notificarPessoa('${escalado.nome.replace(/'/g, "\\'")}')"
+                                    ${!temTelefone ? 'disabled' : ''}>
+                                ${foiNotificado ? '✓ Enviado' : '📲 WhatsApp'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Formatar telefone para exibição
+        function formatarTelefone(telefone) {
+            if (!telefone) return '';
+            const nums = telefone.replace(/\D/g, '');
+            if (nums.length === 11) {
+                return `(${nums.slice(0,2)}) ${nums.slice(2,7)}-${nums.slice(7)}`;
+            }
+            return telefone;
+        }
+        
+        // Formatar telefone para WhatsApp (apenas números com código do país)
+        function formatarTelefoneWhatsApp(telefone) {
+            if (!telefone) return null;
+            let nums = telefone.replace(/\D/g, '');
+            // Adicionar código do Brasil se não tiver
+            if (nums.length === 11) {
+                nums = '55' + nums;
+            } else if (nums.length === 10) {
+                nums = '55' + nums;
+            }
+            return nums;
+        }
+        
+        // Gerar mensagem personalizada
+        function gerarMensagem(nomeResponsavel) {
+            const template = document.getElementById('mensagemTemplate').value;
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const horaInicio = document.getElementById('horaInicio').value;
+            
+            // Buscar atividades do responsável
+            let atividades = [];
+            let horarios = [];
+            let [horas, minutos] = horaInicio.split(':').map(Number);
+            
+            liturgiaItens.forEach(item => {
+                const horaAtual = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+                
+                if (item.responsavel === nomeResponsavel) {
+                    atividades.push(item.atividade);
+                    horarios.push(horaAtual);
+                }
+                
+                minutos += item.duracao || 0;
+                while (minutos >= 60) {
+                    minutos -= 60;
+                    horas++;
+                }
+            });
+            
+            // Formatar data
+            const dataObj = new Date(data + 'T12:00:00');
+            const dataFormatada = dataObj.toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'long'
+            });
+            
+            // Extrair primeiro nome
+            const primeiroNome = normalizarNome(nomeResponsavel).split(' ')[0];
+            const primeiroNomeFormatado = primeiroNome.charAt(0) + primeiroNome.slice(1).toLowerCase();
+            
+            // Formatar atividades
+            const atividadesFormatadas = atividades.map((a, i) => `• ${horarios[i]} - ${a}`).join('\n');
+            
+            // Substituir variáveis
+            let mensagem = template
+                .replace(/{nome}/g, primeiroNomeFormatado)
+                .replace(/{tipoCulto}/g, tipo)
+                .replace(/{data}/g, dataFormatada)
+                .replace(/{atividade}/g, atividadesFormatadas)
+                .replace(/{horario}/g, horarios[0] || horaInicio);
+            
+            return mensagem;
+        }
+        
+        // Notificar uma pessoa específica
+        function notificarPessoa(nomeResponsavel) {
+            const telefone = buscarTelefone(nomeResponsavel);
+            
+            if (!telefone) {
+                showToast(`Telefone não cadastrado para ${nomeResponsavel}`, true);
+                return;
+            }
+            
+            const mensagem = gerarMensagem(nomeResponsavel);
+            const telefoneFormatado = formatarTelefoneWhatsApp(telefone);
+            
+            // Abrir WhatsApp
+            const url = `https://wa.me/${telefoneFormatado}?text=${encodeURIComponent(mensagem)}`;
+            window.open(url, '_blank');
+            
+            // Marcar como notificado
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const chave = `${data}_${tipo}`;
+            
+            if (!notificadosHoje[chave]) {
+                notificadosHoje[chave] = {};
+            }
+            notificadosHoje[chave][nomeResponsavel] = true;
+            
+            // Atualizar lista
+            setTimeout(() => renderizarListaEscalados(), 500);
+        }
+        
+        // Notificar próximo não notificado
+        function notificarProximo() {
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const chave = `${data}_${tipo}`;
+            const horaInicio = document.getElementById('horaInicio').value;
+            
+            // Agrupar por responsável
+            const escaladosMap = {};
+            let [horas, minutos] = horaInicio.split(':').map(Number);
+            
+            liturgiaItens.forEach(item => {
+                if (item.responsavel && !item.responsavel.startsWith('---') && item.responsavel !== 'Outro...') {
+                    if (!escaladosMap[item.responsavel]) {
+                        escaladosMap[item.responsavel] = {
+                            nome: item.responsavel,
+                            telefone: buscarTelefone(item.responsavel)
+                        };
+                    }
+                }
+            });
+            
+            const escalados = Object.values(escaladosMap);
+            
+            // Encontrar próximo não notificado com telefone
+            const proximo = escalados.find(e => 
+                e.telefone && !notificadosHoje[chave]?.[e.nome]
+            );
+            
+            if (proximo) {
+                notificarPessoa(proximo.nome);
+            } else {
+                const semTelefone = escalados.filter(e => !e.telefone);
+                if (semTelefone.length > 0) {
+                    showToast(`Todos notificados! ${semTelefone.length} sem telefone.`, true);
+                } else {
+                    showToast('Todos já foram notificados! 🎉');
+                }
+            }
+        }
+        
+        // Limpar marcações de notificados
+        function limparNotificados() {
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const chave = `${data}_${tipo}`;
+            
+            notificadosHoje[chave] = {};
+            renderizarListaEscalados();
+            showToast('Marcações limpas!');
+        }
+        
+        // ========================================
+        // GERENCIAMENTO DE CONTATOS
+        // ========================================
+        
+        // Renderizar lista de contatos para edição
+        function renderizarListaContatos() {
+            const container = document.getElementById('contatosList');
+            
+            // Pegar todos os responsáveis únicos (da lista + dos itens da liturgia)
+            const todosResponsaveis = new Set();
+            
+            // Da lista padrão
+            responsaveis.forEach(r => {
+                if (r && !r.startsWith('---') && r !== 'Outro...' && r !== '') {
+                    todosResponsaveis.add(r);
+                }
+            });
+            
+            // Dos itens da liturgia
+            liturgiaItens.forEach(item => {
+                if (item.responsavel && !item.responsavel.startsWith('---')) {
+                    todosResponsaveis.add(item.responsavel);
+                }
+            });
+            
+            // Dos contatos já salvos
+            Object.keys(contatosResponsaveis).forEach(nome => {
+                todosResponsaveis.add(nome);
+            });
+            
+            const listaOrdenada = Array.from(todosResponsaveis).sort();
+            
+            if (listaOrdenada.length === 0) {
+                container.innerHTML = '<p style="color: #a0a0a0; text-align: center;">Nenhum responsável cadastrado.</p>';
+                return;
+            }
+            
+            container.innerHTML = listaOrdenada.map(nome => {
+                const telefone = contatosResponsaveis[nome] || '';
+                return `
+                    <div class="contato-item">
+                        <span class="contato-nome">${nome}</span>
+                        <input type="tel" 
+                               placeholder="(61) 99999-9999" 
+                               value="${telefone}"
+                               data-nome="${nome.replace(/"/g, '&quot;')}"
+                               onchange="atualizarContato(this)">
+                        <button class="btn-excluir-contato" onclick="excluirContato('${nome.replace(/'/g, "\\'")}')">🗑️</button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Adicionar novo contato
+        function adicionarNovoContato() {
+            const nome = document.getElementById('novoContatoNome').value.trim();
+            const grupo = document.getElementById('novoContatoGrupo').value;
+            const telefone = document.getElementById('novoContatoTelefone').value.trim();
+            
+            if (!nome) {
+                showToast('Digite o nome do contato!', true);
+                return;
+            }
+            
+            if (!telefone) {
+                showToast('Digite o telefone!', true);
+                return;
+            }
+            
+            // Verificar se já existe
+            if (contatosResponsaveis[nome]) {
+                showToast(`"${nome}" já está cadastrado!`, true);
+                return;
+            }
+            
+            // Adicionar ao cadastro de contatos
+            contatosResponsaveis[nome] = telefone;
+            
+            // Adicionar à lista de responsáveis (se tiver grupo)
+            if (grupo && grupo !== 'outro') {
+                const grupoInfo = gruposDisponiveis.find(g => g.id === grupo);
+                if (grupoInfo) {
+                    const marcadorGrupo = `--- ${grupoInfo.nome} ---`;
+                    let posicaoGrupo = responsaveis.indexOf(marcadorGrupo);
+                    
+                    if (posicaoGrupo > -1) {
+                        // Encontrar fim do grupo
+                        let posicaoFim = posicaoGrupo + 1;
+                        while (posicaoFim < responsaveis.length && 
+                               !responsaveis[posicaoFim].startsWith('---') && 
+                               responsaveis[posicaoFim] !== 'Outro...') {
+                            posicaoFim++;
+                        }
+                        
+                        // Inserir em ordem alfabética
+                        let posicaoInserir = posicaoGrupo + 1;
+                        while (posicaoInserir < posicaoFim && 
+                               responsaveis[posicaoInserir].localeCompare(nome) < 0) {
+                            posicaoInserir++;
+                        }
+                        
+                        if (!responsaveis.includes(nome)) {
+                            responsaveis.splice(posicaoInserir, 0, nome);
+                            responsaveisAdicionados.push({ nome, grupo });
+                        }
+                    }
+                }
+            } else if (!responsaveis.includes(nome)) {
+                // Adicionar antes de "Outro..."
+                const outroIndex = responsaveis.indexOf('Outro...');
+                if (outroIndex > -1) {
+                    responsaveis.splice(outroIndex, 0, nome);
+                }
+                responsaveisAdicionados.push({ nome, grupo: 'outro' });
+            }
+            
+            // Limpar formulário
+            document.getElementById('novoContatoNome').value = '';
+            document.getElementById('novoContatoGrupo').value = '';
+            document.getElementById('novoContatoTelefone').value = '';
+            
+            // Atualizar lista
+            renderizarListaContatos();
+            showToast(`"${nome}" adicionado com sucesso!`);
+        }
+        
+        // Excluir contato
+        function excluirContato(nome) {
+            if (!confirm(`Excluir "${nome}" da lista de contatos?`)) {
+                return;
+            }
+            
+            // Remover do cadastro de contatos
+            delete contatosResponsaveis[nome];
+            
+            // Atualizar lista
+            renderizarListaContatos();
+            showToast(`"${nome}" removido! Clique em Salvar para confirmar.`);
+        }
+        
+        // Atualizar contato temporariamente
+        function atualizarContato(input) {
+            const nome = input.dataset.nome;
+            const telefone = input.value.trim();
+            
+            if (telefone) {
+                contatosResponsaveis[nome] = telefone;
+            } else {
+                delete contatosResponsaveis[nome];
+            }
+        }
+        
+        // Salvar contatos no Firebase
+        function salvarContatos() {
+            contatosRef.set(contatosResponsaveis)
+                .then(() => {
+                    showToast('Contatos salvos com sucesso!');
+                })
+                .catch(err => {
+                    showToast('Erro ao salvar contatos: ' + err.message, true);
+                });
+        }
+        
+        // Sincronizar com cadastro de aniversariantes
+        function sincronizarComAniversariantes() {
+            showToast('Buscando telefones no cadastro de aniversariantes...');
+            
+            aniversariantesRef.once('value').then(snapshot => {
+                const aniversariantes = snapshot.val() || [];
+                let encontrados = 0;
+                let atualizados = 0;
+                
+                // Para cada responsável, tentar encontrar no cadastro de aniversariantes
+                responsaveis.forEach(nomeResponsavel => {
+                    if (!nomeResponsavel || nomeResponsavel.startsWith('---') || nomeResponsavel === 'Outro...') return;
+                    
+                    // Se já tem telefone cadastrado, pular
+                    if (contatosResponsaveis[nomeResponsavel]) return;
+                    
+                    const nomeNorm = normalizarNome(nomeResponsavel);
+                    
+                    // Buscar no cadastro de aniversariantes
+                    const aniversariante = aniversariantes.find(a => {
+                        if (!a || !a.nome) return false;
+                        const nomeAnivNorm = a.nome.toUpperCase().trim();
+                        
+                        // Busca por nome completo ou parcial
+                        return nomeAnivNorm === nomeNorm || 
+                               nomeAnivNorm.includes(nomeNorm) || 
+                               nomeNorm.includes(nomeAnivNorm.split(' ')[0]);
+                    });
+                    
+                    if (aniversariante && aniversariante.telefone) {
+                        contatosResponsaveis[nomeResponsavel] = aniversariante.telefone;
+                        encontrados++;
+                        atualizados++;
+                    }
+                });
+                
+                // Também buscar para os itens da liturgia atual
+                liturgiaItens.forEach(item => {
+                    if (!item.responsavel || item.responsavel.startsWith('---')) return;
+                    if (contatosResponsaveis[item.responsavel]) return;
+                    
+                    const nomeNorm = normalizarNome(item.responsavel);
+                    
+                    const aniversariante = aniversariantes.find(a => {
+                        if (!a || !a.nome) return false;
+                        const nomeAnivNorm = a.nome.toUpperCase().trim();
+                        return nomeAnivNorm === nomeNorm || 
+                               nomeAnivNorm.includes(nomeNorm) || 
+                               nomeNorm.includes(nomeAnivNorm.split(' ')[0]);
+                    });
+                    
+                    if (aniversariante && aniversariante.telefone) {
+                        contatosResponsaveis[item.responsavel] = aniversariante.telefone;
+                        encontrados++;
+                        atualizados++;
+                    }
+                });
+                
+                if (atualizados > 0) {
+                    renderizarListaContatos();
+                    showToast(`${atualizados} telefone(s) encontrado(s)! Clique em Salvar para confirmar.`);
+                } else {
+                    showToast('Nenhum telefone novo encontrado. Verifique se os nomes correspondem.', true);
+                }
+                
+            }).catch(err => {
+                showToast('Erro ao buscar aniversariantes: ' + err.message, true);
+            });
         }
     </script>
 </body>
