@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Eventos - IDAC 2026</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header-logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.4));
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 5px;
+        }
+        .header h2 {
+            font-size: 1rem;
+            color: #a0a0a0;
+            font-weight: normal;
+        }
+        .toolbar {
+            max-width: 1200px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .toolbar button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn-back {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-print {
+            background: #8b5cf6;
+            color: white;
+        }
+        
+        /* Filtros */
+        .filters-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 0 auto 20px;
+            max-width: 1200px;
+        }
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .filters-header h4 {
+            color: #ffd700;
+            font-size: 1rem;
+        }
+        .filter-section {
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .filter-section-title {
+            color: #4ecdc4;
+            font-size: 0.9rem;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .filter-section-title:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .filter-section-title .arrow {
+            transition: transform 0.3s;
+        }
+        .filter-section-title.open .arrow {
+            transform: rotate(180deg);
+        }
+        .filter-section-title .selected-count {
+            background: #ffd700;
+            color: #1a1a2e;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 10px;
+        }
+        .filter-options {
+            display: none;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+        }
+        .filter-options.open {
+            display: flex;
+        }
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+        }
+        .filter-checkbox:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .filter-checkbox input {
+            cursor: pointer;
+        }
+        .filter-checkbox.checked {
+            background: rgba(255,215,0,0.3);
+            border: 1px solid #ffd700;
+        }
+
+        /* Cards de eventos por mês */
+        .events-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .events-by-month {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .month-events-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .month-events-header {
+            background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,215,0,0.1));
+            padding: 10px 15px;
+            font-weight: bold;
+            color: #ffd700;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .month-events-header .event-count {
+            background: #ffd700;
+            color: #1a1a2e;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+        .month-events-body {
+            padding: 10px;
+        }
+        .month-event-item {
+            display: flex;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85rem;
+            align-items: center;
+            gap: 10px;
+        }
+        .month-event-item:last-child {
+            border-bottom: none;
+        }
+        .event-day {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+        .event-info {
+            flex: 1;
+        }
+        .event-info .event-title {
+            color: #fff;
+            font-weight: 500;
+        }
+        .event-info .event-details {
+            color: #a0a0a0;
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+        .event-count-total {
+            text-align: center;
+            color: #a0a0a0;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        .no-events {
+            text-align: center;
+            color: #a0a0a0;
+            padding: 40px;
+        }
+
+        /* Impressão */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 8mm;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .toolbar, .filters-container {
+                display: none !important;
+            }
+            .header {
+                margin-bottom: 10px !important;
+            }
+            .header h1 {
+                color: #1a1a2e !important;
+                text-shadow: none !important;
+                font-size: 1.3rem !important;
+            }
+            .header h2 {
+                color: #666 !important;
+                font-size: 0.8rem !important;
+            }
+            .header-logo {
+                width: 50px !important;
+            }
+            .events-by-month {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+            }
+            .month-events-card {
+                border: 1px solid #ccc !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                background: white !important;
+            }
+            .month-events-header {
+                background: #1a1a2e !important;
+                color: white !important;
+                padding: 5px 10px !important;
+                font-size: 0.75rem !important;
+            }
+            .month-events-header .event-count {
+                background: #ffd700 !important;
+                color: #1a1a2e !important;
+            }
+            .month-events-body {
+                padding: 5px !important;
+            }
+            .month-event-item {
+                padding: 3px 5px !important;
+                font-size: 0.6rem !important;
+                border-bottom: 1px solid #eee !important;
+            }
+            .event-day {
+                background: #f0f0f0 !important;
+                color: #333 !important;
+                padding: 2px 4px !important;
+                font-size: 0.55rem !important;
+                min-width: 20px !important;
+            }
+            .event-info .event-title {
+                color: #333 !important;
+                font-size: 0.6rem !important;
+            }
+            .event-info .event-details {
+                font-size: 0.5rem !important;
+                color: #666 !important;
+            }
+            .event-count-total {
+                font-size: 0.7rem !important;
+                color: #666 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://raw.githubusercontent.com/vanjivaldos-cmyk/games-idac/main/images/LogoGame.png" alt="Logo IDAC" class="header-logo" onerror="this.style.display='none'">
+        <h1>📋 Lista de Eventos 2026</h1>
+        <h2>Igreja de Deus Águas Claras - IDAC</h2>
+    </div>
+
+    <div class="toolbar">
+        <button class="btn-back" onclick="window.close(); window.location.href='Calendario_IDAC_Firebase.html';">⬅️ Voltar ao Calendário</button>
+        <button class="btn-print" onclick="window.print()">🖨️ Imprimir Lista</button>
+    </div>
+
+    <div class="filters-container">
+        <div class="filters-header">
+            <h4>🔍 Filtros</h4>
+            <button onclick="clearFilters()" style="padding: 5px 15px; border: none; border-radius: 5px; background: #6b7280; color: white; cursor: pointer; font-size: 0.8rem;">🔄 Limpar</button>
+        </div>
+        
+        <div class="filter-section">
+            <div class="filter-section-title" onclick="toggleFilterSection('months', this)">
+                <span>📅 Mês <span class="selected-count" id="countMonths" style="display:none">0</span></span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="filter-options" id="filterMonths"></div>
+        </div>
+        
+        <div class="filter-section">
+            <div class="filter-section-title" onclick="toggleFilterSection('types', this)">
+                <span>🎯 Tipo de Evento <span class="selected-count" id="countTypes" style="display:none">0</span></span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="filter-options" id="filterTypes"></div>
+        </div>
+        
+        <div class="filter-section">
+            <div class="filter-section-title" onclick="toggleFilterSection('resps', this)">
+                <span>👤 Responsável <span class="selected-count" id="countResps" style="display:none">0</span></span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="filter-options" id="filterResps"></div>
+        </div>
+    </div>
+
+    <div class="events-container">
+        <p class="event-count-total" id="eventCount">Carregando...</p>
+        <div class="events-by-month" id="eventsList"></div>
+    </div>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_FbMpEZYn_lLZiSjGmP0sMM7XcuTn8Qw",
+            authDomain: "games-idac.firebaseapp.com",
+            databaseURL: "https://games-idac-default-rtdb.firebaseio.com",
+            projectId: "games-idac",
+            storageBucket: "games-idac.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abc123"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const calendarioRef = database.ref('calendario_2026');
+
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+        let events = {};
+        let selectedMonths = [];
+        let selectedTypes = [];
+        let selectedResps = [];
+
+        // Carregar dados do Firebase
+        calendarioRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                events = data;
+                buildFilterOptions();
+                updateEventsList();
+            }
+        });
+
+        function toggleFilterSection(section, titleElement) {
+            const optionsDiv = document.getElementById('filter' + section.charAt(0).toUpperCase() + section.slice(1));
+            optionsDiv.classList.toggle('open');
+            titleElement.classList.toggle('open');
+        }
+
+        function toggleFilter(type, value, checkbox) {
+            const label = checkbox.parentElement;
+            if (checkbox.checked) {
+                label.classList.add('checked');
+                if (type === 'month' && !selectedMonths.includes(value)) selectedMonths.push(value);
+                if (type === 'type' && !selectedTypes.includes(value)) selectedTypes.push(value);
+                if (type === 'resp' && !selectedResps.includes(value)) selectedResps.push(value);
+            } else {
+                label.classList.remove('checked');
+                if (type === 'month') selectedMonths = selectedMonths.filter(m => m !== value);
+                if (type === 'type') selectedTypes = selectedTypes.filter(t => t !== value);
+                if (type === 'resp') selectedResps = selectedResps.filter(r => r !== value);
+            }
+            updateEventsList();
+            updateFilterCounts();
+        }
+
+        function clearFilters() {
+            selectedMonths = [];
+            selectedTypes = [];
+            selectedResps = [];
+            buildFilterOptions();
+            updateEventsList();
+            updateFilterCounts();
+        }
+
+        function updateFilterCounts() {
+            const countMonths = document.getElementById('countMonths');
+            const countTypes = document.getElementById('countTypes');
+            const countResps = document.getElementById('countResps');
+            
+            if (selectedMonths.length > 0) {
+                countMonths.textContent = selectedMonths.length;
+                countMonths.style.display = 'inline';
+            } else {
+                countMonths.style.display = 'none';
+            }
+            
+            if (selectedTypes.length > 0) {
+                countTypes.textContent = selectedTypes.length;
+                countTypes.style.display = 'inline';
+            } else {
+                countTypes.style.display = 'none';
+            }
+            
+            if (selectedResps.length > 0) {
+                countResps.textContent = selectedResps.length;
+                countResps.style.display = 'inline';
+            } else {
+                countResps.style.display = 'none';
+            }
+        }
+
+        function buildFilterOptions() {
+            const allEvents = [];
+            Object.keys(events).forEach(dateKey => {
+                events[dateKey].forEach(event => {
+                    allEvents.push({...event, date: dateKey});
+                });
+            });
+
+            // Meses
+            const months = [...new Set(allEvents.map(e => e.date.substring(0, 7)))].sort();
+            const monthsContainer = document.getElementById('filterMonths');
+            monthsContainer.innerHTML = months.map(m => {
+                const [year, month] = m.split('-');
+                const monthName = monthNames[parseInt(month) - 1];
+                const checked = selectedMonths.includes(m) ? 'checked' : '';
+                const checkedClass = selectedMonths.includes(m) ? 'checked' : '';
+                return `<label class="filter-checkbox ${checkedClass}">
+                    <input type="checkbox" value="${m}" ${checked} onchange="toggleFilter('month', '${m}', this)">
+                    ${monthName}
+                </label>`;
+            }).join('');
+
+            // Tipos
+            const typeNames = {
+                'lideranca': 'Reunião Liderança',
+                'tarde-deus': '"Noite" com Deus',
+                'curso': 'Curso',
+                'candeias': 'Culto Candeias',
+                'mulheres': 'Min. Mulheres',
+                'homens': 'Min. Homens',
+                'ebf': 'EBF',
+                'especial': 'Eventos Especiais',
+                'feriado': 'Feriado',
+                'copa': 'Copa do Mundo',
+                'eleicao': 'Eleições',
+                'teens': 'Min. Teens',
+                'outro': 'Outros'
+            };
+            const types = [...new Set(allEvents.map(e => e.type))].sort();
+            const typesContainer = document.getElementById('filterTypes');
+            typesContainer.innerHTML = types.map(t => {
+                const checked = selectedTypes.includes(t) ? 'checked' : '';
+                const checkedClass = selectedTypes.includes(t) ? 'checked' : '';
+                return `<label class="filter-checkbox ${checkedClass}">
+                    <input type="checkbox" value="${t}" ${checked} onchange="toggleFilter('type', '${t}', this)">
+                    ${typeNames[t] || t}
+                </label>`;
+            }).join('');
+
+            // Responsáveis
+            const resps = [...new Set(allEvents.map(e => e.resp).filter(r => r))].sort();
+            const respsContainer = document.getElementById('filterResps');
+            respsContainer.innerHTML = resps.map(r => {
+                const checked = selectedResps.includes(r) ? 'checked' : '';
+                const checkedClass = selectedResps.includes(r) ? 'checked' : '';
+                return `<label class="filter-checkbox ${checkedClass}">
+                    <input type="checkbox" value="${r}" ${checked} onchange="toggleFilter('resp', '${r}', this)">
+                    ${r}
+                </label>`;
+            }).join('');
+        }
+
+        function updateEventsList() {
+            const container = document.getElementById('eventsList');
+            const countEl = document.getElementById('eventCount');
+            
+            let allEvents = [];
+            Object.keys(events).sort().forEach(dateKey => {
+                events[dateKey].forEach(event => {
+                    allEvents.push({...event, date: dateKey});
+                });
+            });
+            
+            // Aplicar filtros
+            if (selectedMonths.length > 0) {
+                allEvents = allEvents.filter(e => selectedMonths.includes(e.date.substring(0, 7)));
+            }
+            if (selectedTypes.length > 0) {
+                allEvents = allEvents.filter(e => selectedTypes.includes(e.type));
+            }
+            if (selectedResps.length > 0) {
+                allEvents = allEvents.filter(e => selectedResps.includes(e.resp));
+            }
+            
+            if (allEvents.length === 0) {
+                container.innerHTML = '<div class="no-events">Nenhum evento encontrado</div>';
+                countEl.textContent = '0 eventos encontrados';
+                return;
+            }
+            
+            countEl.textContent = `📊 ${allEvents.length} evento(s) encontrado(s)`;
+            
+            // Agrupar por mês
+            const eventsByMonth = {};
+            allEvents.forEach(event => {
+                const monthKey = event.date.substring(0, 7);
+                if (!eventsByMonth[monthKey]) {
+                    eventsByMonth[monthKey] = [];
+                }
+                eventsByMonth[monthKey].push(event);
+            });
+            
+            // Gerar HTML
+            let html = '';
+            Object.keys(eventsByMonth).sort().forEach(monthKey => {
+                const monthEvents = eventsByMonth[monthKey];
+                const [year, month] = monthKey.split('-');
+                const monthName = monthNames[parseInt(month) - 1];
+                
+                html += `
+                    <div class="month-events-card">
+                        <div class="month-events-header">
+                            <span>📅 ${monthName}</span>
+                            <span class="event-count">${monthEvents.length}</span>
+                        </div>
+                        <div class="month-events-body">
+                            ${monthEvents.map(event => {
+                                const day = event.date.split('-')[2];
+                                return `
+                                    <div class="month-event-item">
+                                        <span class="event-day">${parseInt(day)}</span>
+                                        <div class="event-info">
+                                            <div class="event-title">${event.title}</div>
+                                            <div class="event-details">
+                                                ${event.time ? '⏰ ' + event.time : ''}
+                                                ${event.time && event.resp ? ' • ' : ''}
+                                                ${event.resp ? '👤 ' + event.resp : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
