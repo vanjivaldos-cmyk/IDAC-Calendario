@@ -530,54 +530,51 @@
                 
                 return `
                     <tr style="background: ${bgColor};">
-                        <td style="padding: 8px 10px; color: #4ecdc4; font-weight: bold; font-size: 0.85rem;">${horaAtual}</td>
-                        <td style="padding: 8px 10px; color: #fff; font-size: 0.85rem;">${item.atividade || '-'}</td>
-                        <td style="padding: 8px 10px; color: #a0a0a0; font-size: 0.85rem;">${item.responsavel || '-'}</td>
-                        <td style="padding: 8px 10px; color: #ffd700; text-align: center; font-weight: bold; font-size: 0.85rem;">${item.duracao} min</td>
+                        <td style="padding: 8px 10px; color: #4ecdc4; font-weight: bold; font-size: 0.9rem;">${horaAtual}</td>
+                        <td style="padding: 8px 10px; color: #fff; font-size: 0.9rem;">${item.atividade || '-'}</td>
+                        <td style="padding: 8px 10px; color: #a0a0a0; font-size: 0.9rem;">${item.responsavel || '-'}</td>
+                        <td style="padding: 8px 10px; color: #ffd700; text-align: center; font-weight: bold; font-size: 0.9rem;">${item.duracao} min</td>
                     </tr>
                 `;
             }).join('');
             
             const horaTermino = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
             
-            // Criar elemento temporário para o PDF com visual completo
+            // Criar elemento temporário para o PDF com visual otimizado para leitura
             const pdfContent = document.createElement('div');
             pdfContent.innerHTML = `
-                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 20px; min-height: 100%; color: #fff;">
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 25px; color: #fff;">
                     
                     <!-- Header -->
                     <div style="text-align: center; margin-bottom: 15px;">
                         <img src="https://raw.githubusercontent.com/vanjivaldos-cmyk/games-idac/main/images/LogoGame.png" 
-                             style="width: 60px; height: auto; margin-bottom: 8px; filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.4));"
+                             style="width: 55px; height: auto; margin-bottom: 8px; filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.4));"
                              crossorigin="anonymous">
-                        <h1 style="font-size: 1.4rem; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); margin: 5px 0;">📋 Liturgia IDAC</h1>
+                        <h1 style="font-size: 1.4rem; color: #ffd700; margin: 5px 0;">📋 Liturgia IDAC</h1>
                         <h2 style="font-size: 0.85rem; color: #a0a0a0; font-weight: normal; margin: 0;">Igreja de Deus Águas Claras</h2>
                     </div>
                     
-                    <!-- Info do Culto (simplificado) -->
-                    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <!-- Info do Culto em linha -->
+                    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 15px;">
                         <div style="text-align: center;">
-                            <div style="color: #a0a0a0; font-size: 0.7rem;">📅 Data</div>
-                            <div style="color: #fff; font-size: 0.9rem; font-weight: bold;">${dataFormatada}</div>
+                            <span style="color: #fff; font-size: 0.95rem; font-weight: bold;">📅 ${dataFormatada}</span>
                         </div>
                         <div style="text-align: center;">
-                            <div style="color: #a0a0a0; font-size: 0.7rem;">⛪ Culto</div>
-                            <div style="color: #fff; font-size: 0.9rem; font-weight: bold;">${tipo}</div>
+                            <span style="color: #fff; font-size: 0.95rem; font-weight: bold;">⛪ ${tipo}</span>
                         </div>
                         <div style="text-align: center;">
-                            <div style="color: #a0a0a0; font-size: 0.7rem;">⏰ Início</div>
-                            <div style="color: #fff; font-size: 0.9rem; font-weight: bold;">${horaInicio}</div>
+                            <span style="color: #fff; font-size: 0.95rem; font-weight: bold;">⏰ ${horaInicio}</span>
                         </div>
                     </div>
                     
                     <!-- Tabela de Liturgia -->
-                    <table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden;">
                         <thead>
                             <tr style="background: rgba(255,215,0,0.2);">
-                                <th style="padding: 10px 10px; text-align: left; color: #ffd700; font-size: 0.8rem;">Hora</th>
-                                <th style="padding: 10px 10px; text-align: left; color: #ffd700; font-size: 0.8rem;">Atividade</th>
-                                <th style="padding: 10px 10px; text-align: left; color: #ffd700; font-size: 0.8rem;">Responsável</th>
-                                <th style="padding: 10px 10px; text-align: center; color: #ffd700; font-size: 0.8rem;">Duração</th>
+                                <th style="padding: 10px; text-align: left; color: #ffd700; font-size: 0.85rem; width: 60px;">Hora</th>
+                                <th style="padding: 10px; text-align: left; color: #ffd700; font-size: 0.85rem;">Atividade</th>
+                                <th style="padding: 10px; text-align: left; color: #ffd700; font-size: 0.85rem; width: 140px;">Responsável</th>
+                                <th style="padding: 10px; text-align: center; color: #ffd700; font-size: 0.85rem; width: 70px;">Duração</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -586,7 +583,7 @@
                     </table>
                     
                     <!-- Resumo -->
-                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; margin-top: 15px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; margin-top: 15px; display: flex; justify-content: space-around;">
                         <div style="text-align: center;">
                             <div style="color: #a0a0a0; font-size: 0.7rem;">Início</div>
                             <div style="color: #ffd700; font-size: 1.1rem; font-weight: bold;">${horaInicio}</div>
@@ -606,7 +603,7 @@
                     </div>
                     
                     <!-- Rodapé -->
-                    <div style="text-align: center; margin-top: 15px; color: #555; font-size: 0.65rem;">
+                    <div style="text-align: center; margin-top: 12px; color: #555; font-size: 0.6rem;">
                         Gerado em ${new Date().toLocaleString('pt-BR')} | IDAC
                     </div>
                 </div>
@@ -974,6 +971,16 @@
                     if (dados) {
                         liturgiaItens = dados.itens || [];
                         document.getElementById('horaInicio').value = dados.horaInicio || '18:00';
+                        
+                        // Adicionar responsáveis dos itens à lista (se não existirem)
+                        liturgiaItens.forEach(item => {
+                            if (item.responsavel && !responsaveis.includes(item.responsavel)) {
+                                const outroIndex = responsaveis.indexOf('Outro...');
+                                if (outroIndex > -1) {
+                                    responsaveis.splice(outroIndex, 0, item.responsavel);
+                                }
+                            }
+                        });
                         
                         // Marcar como salvo para detectar mudanças
                         liturgiaSalva = JSON.stringify({ horaInicio: dados.horaInicio, itens: liturgiaItens });
