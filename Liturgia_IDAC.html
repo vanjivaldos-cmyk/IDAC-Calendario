@@ -611,17 +611,18 @@
             
             // Configurações do PDF
             const opt = {
-                margin: [10, 10, 10, 10],
+                margin: [5, 5, 5, 5],
                 filename: `Liturgia_IDAC_${data}_${tipo.replace(/\s/g, '_')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { 
-                    scale: 2,
+                    scale: 1.5,
                     useCORS: true,
                     allowTaint: true,
-                    backgroundColor: '#1a1a2e'
+                    backgroundColor: '#1a1a2e',
+                    windowWidth: 800
                 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                pagebreak: { mode: 'avoid-all' }
             };
             
             showToast('Gerando PDF...');
@@ -725,16 +726,26 @@
         // Lista de responsáveis adicionados manualmente (temporários)
         let responsaveisAdicionados = [];
 
+        // Grupos disponíveis para novos responsáveis
+        const gruposDisponiveis = [
+            { id: 'pastores', nome: 'PASTORES', prefixo: 'Pra./Pr.' },
+            { id: 'presbitero', nome: 'PRESBÍTERO', prefixo: 'Pb.' },
+            { id: 'evangelista', nome: 'EVANGELISTA', prefixo: 'Ev.' },
+            { id: 'diaconos', nome: 'DIÁCONOS', prefixo: 'Diác./Diac.' },
+            { id: 'ministerios', nome: 'MINISTÉRIOS', prefixo: '' }
+        ];
+
         function selecionarResponsavel(index, selectElement) {
             let valor = selectElement.value;
             
             if (valor === 'Outro...') {
-                const novoNome = prompt('Digite o nome do responsável:');
+                // Criar modal para cadastro
+                const novoNome = prompt('Digite o nome do responsável (ex: Diác. Flávio):');
                 if (novoNome && novoNome.trim() !== '') {
                     valor = novoNome.trim();
                     
-                    // Verificar se já existe na lista original ou nos adicionados
-                    const jaExiste = responsaveis.includes(valor) || responsaveisAdicionados.includes(valor);
+                    // Verificar se já existe na lista
+                    const jaExiste = responsaveis.includes(valor);
                     
                     if (jaExiste) {
                         showToast(`"${valor}" já está na lista! Selecione no dropdown.`, true);
@@ -742,19 +753,74 @@
                         return;
                     }
                     
-                    // Adicionar à lista temporária
-                    responsaveisAdicionados.push(valor);
+                    // Perguntar o grupo
+                    const grupoEscolhido = prompt(
+                        'Em qual grupo este responsável se enquadra?\n\n' +
+                        '1 - PASTORES\n' +
+                        '2 - PRESBÍTERO\n' +
+                        '3 - EVANGELISTA\n' +
+                        '4 - DIÁCONOS\n' +
+                        '5 - MINISTÉRIOS\n\n' +
+                        'Digite o número (1-5):'
+                    );
                     
-                    // Inserir na lista principal antes de "Outro..."
-                    const outroIndex = responsaveis.indexOf('Outro...');
-                    if (outroIndex > -1) {
-                        responsaveis.splice(outroIndex, 0, valor);
+                    if (grupoEscolhido) {
+                        const grupoIndex = parseInt(grupoEscolhido) - 1;
+                        if (grupoIndex >= 0 && grupoIndex < gruposDisponiveis.length) {
+                            const grupo = gruposDisponiveis[grupoIndex];
+                            
+                            // Encontrar posição do grupo na lista
+                            const marcadorGrupo = `--- ${grupo.nome} ---`;
+                            let posicaoGrupo = responsaveis.indexOf(marcadorGrupo);
+                            
+                            if (posicaoGrupo > -1) {
+                                // Encontrar fim do grupo (próximo marcador ou "Outro...")
+                                let posicaoFim = posicaoGrupo + 1;
+                                while (posicaoFim < responsaveis.length && 
+                                       !responsaveis[posicaoFim].startsWith('---') && 
+                                       responsaveis[posicaoFim] !== 'Outro...') {
+                                    posicaoFim++;
+                                }
+                                
+                                // Inserir no grupo correto (em ordem alfabética)
+                                let posicaoInserir = posicaoGrupo + 1;
+                                while (posicaoInserir < posicaoFim && 
+                                       responsaveis[posicaoInserir].localeCompare(valor) < 0) {
+                                    posicaoInserir++;
+                                }
+                                
+                                responsaveis.splice(posicaoInserir, 0, valor);
+                                responsaveisAdicionados.push({ nome: valor, grupo: grupo.id });
+                                showToast(`"${valor}" adicionado em ${grupo.nome}!`);
+                            } else {
+                                // Grupo não encontrado, adiciona antes de "Outro..."
+                                const outroIndex = responsaveis.indexOf('Outro...');
+                                if (outroIndex > -1) {
+                                    responsaveis.splice(outroIndex, 0, valor);
+                                }
+                                responsaveisAdicionados.push({ nome: valor, grupo: grupo.id });
+                                showToast(`"${valor}" adicionado!`);
+                            }
+                        } else {
+                            // Número inválido, adiciona antes de "Outro..."
+                            const outroIndex = responsaveis.indexOf('Outro...');
+                            if (outroIndex > -1) {
+                                responsaveis.splice(outroIndex, 0, valor);
+                            }
+                            responsaveisAdicionados.push({ nome: valor, grupo: 'outro' });
+                            showToast(`"${valor}" adicionado!`);
+                        }
+                    } else {
+                        // Cancelou a escolha do grupo
+                        valor = liturgiaItens[index].responsavel || '';
+                        renderizarTabela();
+                        return;
                     }
-                    
-                    showToast(`"${valor}" adicionado à lista!`);
                 } else {
                     // Cancelou ou não digitou nada
                     valor = liturgiaItens[index].responsavel || '';
+                    renderizarTabela();
+                    return;
                 }
             }
             
@@ -928,9 +994,19 @@
             const responsaveisRef = database.ref('responsaveis_liturgia');
             responsaveisRef.once('value').then(snapshot => {
                 let lista = snapshot.val() || [];
-                responsaveisAdicionados.forEach(nome => {
-                    if (!lista.includes(nome)) {
-                        lista.push(nome);
+                responsaveisAdicionados.forEach(item => {
+                    // Verificar se é objeto (novo formato) ou string (formato antigo)
+                    const nome = typeof item === 'object' ? item.nome : item;
+                    const grupo = typeof item === 'object' ? item.grupo : 'outro';
+                    
+                    // Verificar se já existe
+                    const existe = lista.some(r => {
+                        const nomeExistente = typeof r === 'object' ? r.nome : r;
+                        return nomeExistente === nome;
+                    });
+                    
+                    if (!existe) {
+                        lista.push({ nome, grupo });
                     }
                 });
                 responsaveisRef.set(lista);
@@ -942,18 +1018,55 @@
             const responsaveisRef = database.ref('responsaveis_liturgia');
             responsaveisRef.once('value').then(snapshot => {
                 const lista = snapshot.val() || [];
-                lista.forEach(nome => {
+                lista.forEach(item => {
+                    const nome = typeof item === 'object' ? item.nome : item;
+                    const grupo = typeof item === 'object' ? item.grupo : 'outro';
+                    
                     if (!responsaveis.includes(nome)) {
-                        const outroIndex = responsaveis.indexOf('Outro...');
-                        if (outroIndex > -1) {
-                            responsaveis.splice(outroIndex, 0, nome);
+                        // Encontrar posição do grupo
+                        const grupoInfo = gruposDisponiveis.find(g => g.id === grupo);
+                        if (grupoInfo) {
+                            const marcadorGrupo = `--- ${grupoInfo.nome} ---`;
+                            let posicaoGrupo = responsaveis.indexOf(marcadorGrupo);
+                            
+                            if (posicaoGrupo > -1) {
+                                // Encontrar fim do grupo
+                                let posicaoFim = posicaoGrupo + 1;
+                                while (posicaoFim < responsaveis.length && 
+                                       !responsaveis[posicaoFim].startsWith('---') && 
+                                       responsaveis[posicaoFim] !== 'Outro...') {
+                                    posicaoFim++;
+                                }
+                                
+                                // Inserir em ordem alfabética
+                                let posicaoInserir = posicaoGrupo + 1;
+                                while (posicaoInserir < posicaoFim && 
+                                       responsaveis[posicaoInserir].localeCompare(nome) < 0) {
+                                    posicaoInserir++;
+                                }
+                                
+                                responsaveis.splice(posicaoInserir, 0, nome);
+                            } else {
+                                // Grupo não encontrado, adiciona antes de "Outro..."
+                                const outroIndex = responsaveis.indexOf('Outro...');
+                                if (outroIndex > -1) {
+                                    responsaveis.splice(outroIndex, 0, nome);
+                                }
+                            }
+                        } else {
+                            // Grupo desconhecido, adiciona antes de "Outro..."
+                            const outroIndex = responsaveis.indexOf('Outro...');
+                            if (outroIndex > -1) {
+                                responsaveis.splice(outroIndex, 0, nome);
+                            }
                         }
-                        responsaveisAdicionados.push(nome);
                     }
                 });
                 if (lista.length > 0) {
                     console.log('Responsáveis carregados:', lista.length);
                 }
+            }).catch(err => {
+                console.log('Erro ao carregar responsáveis:', err);
             });
         }
 
