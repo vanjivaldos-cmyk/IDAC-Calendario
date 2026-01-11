@@ -812,11 +812,42 @@
             background: white !important;
         }
         
+        body.print-list-only .calendar-container {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
+        
+        body.print-list-only .legend {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
+        body.print-list-only .events-list {
+            display: block !important;
+            visibility: visible !important;
+        }
+        
         @media print {
             body.print-list-only .events-list {
                 display: block !important;
+                visibility: visible !important;
                 background: white !important;
                 padding: 0 !important;
+            }
+            
+            body.print-list-only .calendar-container {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                max-height: 0 !important;
+                overflow: hidden !important;
+            }
+            
+            body.print-list-only .legend {
+                display: none !important;
+                visibility: hidden !important;
             }
             
             body.print-list-only .events-list h3 {
@@ -2132,8 +2163,18 @@
         }
 
         function printList() {
+            // Esconder calendário e mostrar lista
             document.body.classList.add('print-list-only');
             document.body.classList.remove('print-calendar-only');
+            
+            // Forçar esconder calendário (para mobile)
+            const calendar = document.querySelector('.calendar-container');
+            const legend = document.querySelector('.legend');
+            const eventsList = document.querySelector('.events-list');
+            
+            if (calendar) calendar.style.display = 'none';
+            if (legend) legend.style.display = 'none';
+            if (eventsList) eventsList.style.display = 'block';
             
             // Adicionar estilo temporário para forçar A4 vertical
             const styleSheet = document.createElement('style');
@@ -2145,7 +2186,12 @@
             
             setTimeout(() => {
                 window.print();
+                
+                // Restaurar após impressão
                 document.body.classList.remove('print-list-only');
+                if (calendar) calendar.style.display = '';
+                if (legend) legend.style.display = '';
+                
                 // Remover estilo temporário
                 const tempStyle = document.getElementById('print-portrait-style');
                 if (tempStyle) tempStyle.remove();
