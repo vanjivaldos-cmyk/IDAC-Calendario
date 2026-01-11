@@ -740,7 +740,15 @@
             </div>
             
             <div class="mensagem-template">
-                <label>📝 Modelo da Mensagem:</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label>📝 Modelo da Mensagem:</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <select id="tipoMensagemSelect" onchange="carregarTipoMensagem()" style="padding: 5px 10px; border-radius: 5px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
+                            <option value="padrao">📋 Escalação Padrão</option>
+                        </select>
+                        <button onclick="abrirModalMensagens()" style="background: #8b5cf6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">⚙️ Gerenciar</button>
+                    </div>
+                </div>
                 <textarea id="mensagemTemplate">Paz do Senhor, {nome}! 🙏
 
 Você está escalado(a) para o culto de *{tipoCulto}* no dia *{data}*:
@@ -750,6 +758,7 @@ Você está escalado(a) para o culto de *{tipoCulto}* no dia *{data}*:
 
 Contamos com você! Deus abençoe! 🙌
 
+*Bispo Vanjivaldo e Pra Kélia*
 _Igreja de Deus Águas Claras - IDAC_</textarea>
                 <div class="variaveis-help">
                     Variáveis: <code>{nome}</code> <code>{tipoCulto}</code> <code>{data}</code> <code>{atividade}</code> <code>{horario}</code>
@@ -806,8 +815,8 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
             </div>
             
             <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn-sync" onclick="sincronizarComAniversariantes()">🔄 Sincronizar com Aniversariantes</button>
-                <span style="color: #a0a0a0; font-size: 0.8rem; align-self: center;">Busca telefones do cadastro</span>
+                <button class="btn-sync" onclick="sincronizarComAniversariantes()">🔄 Sincronizar com Ministrações</button>
+                <span style="color: #a0a0a0; font-size: 0.8rem; align-self: center;">Busca telefones do Planejamento de Ministrações</span>
             </div>
             
             <div class="contatos-list" id="contatosList">
@@ -815,6 +824,42 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
             </div>
             
             <button class="btn-salvar-contatos" onclick="salvarContatos()">💾 Salvar Contatos</button>
+        </div>
+    </div>
+
+    <!-- Modal de Gerenciamento de Tipos de Mensagem -->
+    <div class="modal-overlay" id="modalMensagens">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📝 Gerenciar Modelos de Mensagem</h2>
+                <button class="modal-close" onclick="fecharModal('modalMensagens')">×</button>
+            </div>
+            
+            <!-- Formulário para adicionar novo tipo de mensagem -->
+            <div class="novo-contato-form">
+                <h4 style="color: #ffd700; margin-bottom: 10px;">➕ Criar Novo Modelo</h4>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="novo-contato-field">
+                        <label>Nome do Modelo</label>
+                        <input type="text" id="novoModeloNome" placeholder="Ex: Lembrete de Ensaio">
+                    </div>
+                    <div class="novo-contato-field">
+                        <label>Texto da Mensagem</label>
+                        <textarea id="novoModeloTexto" style="min-height: 120px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: #fff; font-size: 0.9rem; resize: vertical;" placeholder="Digite a mensagem usando as variáveis disponíveis..."></textarea>
+                    </div>
+                    <div class="variaveis-help" style="margin-top: -5px;">
+                        Variáveis disponíveis: <code>{nome}</code> <code>{tipoCulto}</code> <code>{data}</code> <code>{atividade}</code> <code>{horario}</code>
+                    </div>
+                    <button class="btn-add-contato" onclick="adicionarNovoModelo()">➕ Adicionar Modelo</button>
+                </div>
+            </div>
+            
+            <h4 style="color: #ffd700; margin: 20px 0 10px;">📋 Modelos Salvos</h4>
+            <div class="contatos-list" id="modelosList" style="max-height: 300px;">
+                <!-- Lista preenchida via JavaScript -->
+            </div>
+            
+            <button class="btn-salvar-contatos" onclick="salvarModelos()">💾 Salvar Modelos</button>
         </div>
     </div>
 
@@ -1583,7 +1628,6 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
         
         // Cadastro de contatos (nome -> telefone)
         let contatosResponsaveis = {};
-        let aniversariantesCache = []; // Cache dos aniversariantes
         let ministrantesCache = []; // Cache do Planejamento de Ministrações
         let notificadosHoje = {}; // Controle de quem já foi notificado
         
@@ -1591,73 +1635,35 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
         const contatosRef = database.ref('contatos_responsaveis');
         const ministrantesRef = database.ref('escala_ministracoes/ministrantes');
         
-        // Carregar contatos do Firebase e aniversariantes ao iniciar
+        // Carregar contatos do Firebase ao iniciar
         function carregarContatos() {
             // Primeiro carrega os contatos salvos
             contatosRef.once('value').then(snapshot => {
                 contatosResponsaveis = snapshot.val() || {};
                 console.log('Contatos carregados:', Object.keys(contatosResponsaveis).length);
                 
-                // Depois carrega os aniversariantes e ministrantes
-                carregarFontesDeContatos();
+                // Depois carrega os ministrantes
+                carregarMinistrantes();
             }).catch(err => {
                 console.log('Erro ao carregar contatos:', err);
-                carregarFontesDeContatos();
+                carregarMinistrantes();
             });
         }
         
-        // Carregar aniversariantes e ministrantes
-        function carregarFontesDeContatos() {
-            // Carregar aniversariantes
-            aniversariantesRef.once('value').then(snapshot => {
-                aniversariantesCache = snapshot.val() || [];
-                console.log('Aniversariantes carregados:', aniversariantesCache.length);
-                
-                // Mesclar telefones
-                mesclarTelefonesAniversariantes();
-            }).catch(err => {
-                console.log('Erro ao carregar aniversariantes:', err);
-            });
-            
-            // Carregar ministrantes (Planejamento de Ministrações - para Pr. Tadeu, Pra. Nelcy, etc)
+        // Carregar ministrantes do Planejamento de Ministrações
+        function carregarMinistrantes() {
             ministrantesRef.once('value').then(snapshot => {
                 ministrantesCache = snapshot.val() || [];
                 console.log('Ministrantes carregados:', ministrantesCache.length);
                 
-                // Mesclar telefones dos ministrantes
+                // Mesclar telefones dos ministrantes com contatos
                 mesclarTelefonesMinistrantes();
             }).catch(err => {
                 console.log('Erro ao carregar ministrantes:', err);
             });
         }
         
-        // Mesclar telefones dos aniversariantes com contatos existentes
-        function mesclarTelefonesAniversariantes() {
-            if (!aniversariantesCache || aniversariantesCache.length === 0) return;
-            
-            let novosContatos = 0;
-            
-            // Para cada responsável da lista, tentar encontrar telefone nos aniversariantes
-            responsaveis.forEach(nomeResponsavel => {
-                if (!nomeResponsavel || nomeResponsavel.startsWith('---') || nomeResponsavel === 'Outro...' || nomeResponsavel === '') return;
-                
-                // Se já tem telefone cadastrado, pular
-                if (contatosResponsaveis[nomeResponsavel]) return;
-                
-                // Buscar nos aniversariantes
-                const telefone = buscarTelefoneAniversariante(nomeResponsavel);
-                if (telefone) {
-                    contatosResponsaveis[nomeResponsavel] = telefone;
-                    novosContatos++;
-                }
-            });
-            
-            if (novosContatos > 0) {
-                console.log(`${novosContatos} telefones encontrados nos aniversariantes`);
-            }
-        }
-        
-        // Mesclar telefones dos ministrantes
+        // Mesclar telefones dos ministrantes com contatos existentes
         function mesclarTelefonesMinistrantes() {
             if (!ministrantesCache || ministrantesCache.length === 0) return;
             
@@ -1692,23 +1698,6 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
                 .trim();
             // Pega só o primeiro nome
             return semPrefixo.split(' ')[0].toUpperCase();
-        }
-        
-        // Buscar telefone específico nos aniversariantes (por PRIMEIRO NOME)
-        function buscarTelefoneAniversariante(nomeResponsavel) {
-            if (!aniversariantesCache || aniversariantesCache.length === 0) return null;
-            
-            const primeiroNome = extrairPrimeiroNome(nomeResponsavel);
-            if (!primeiroNome) return null;
-            
-            // Busca pelo primeiro nome
-            const aniversariante = aniversariantesCache.find(a => {
-                if (!a || !a.nome) return false;
-                const primeiroNomeAniv = a.nome.toUpperCase().trim().split(' ')[0];
-                return primeiroNomeAniv === primeiroNome;
-            });
-            
-            return aniversariante?.telefone || null;
         }
         
         // Buscar telefone específico nos ministrantes (Planejamento de Ministrações)
@@ -1805,15 +1794,7 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
                 }
             }
             
-            // Se não encontrou nos contatos, buscar nos aniversariantes
-            const telefoneAniv = buscarTelefoneAniversariante(nomeResponsavel);
-            if (telefoneAniv) {
-                // Salvar no cache local para próximas buscas
-                contatosResponsaveis[nomeResponsavel] = telefoneAniv;
-                return telefoneAniv;
-            }
-            
-            // Se não encontrou nos aniversariantes, buscar nos ministrantes
+            // Se não encontrou nos contatos, buscar nos ministrantes
             const telefoneMin = buscarTelefoneMinistrante(nomeResponsavel);
             if (telefoneMin) {
                 // Salvar no cache local para próximas buscas
@@ -2071,28 +2052,39 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
             const container = document.getElementById('contatosList');
             
             // Pegar todos os responsáveis únicos (da lista + dos itens da liturgia)
-            const todosResponsaveis = new Set();
+            // Usar Map para evitar duplicatas case-insensitive
+            const responsaveisMap = new Map();
             
-            // Da lista padrão
+            // Da lista padrão (prioridade - mantém o case original)
             responsaveis.forEach(r => {
                 if (r && !r.startsWith('---') && r !== 'Outro...' && r !== '') {
-                    todosResponsaveis.add(r);
+                    const chave = r.toUpperCase();
+                    if (!responsaveisMap.has(chave)) {
+                        responsaveisMap.set(chave, r);
+                    }
                 }
             });
             
             // Dos itens da liturgia
             liturgiaItens.forEach(item => {
                 if (item.responsavel && !item.responsavel.startsWith('---')) {
-                    todosResponsaveis.add(item.responsavel);
+                    const chave = item.responsavel.toUpperCase();
+                    if (!responsaveisMap.has(chave)) {
+                        responsaveisMap.set(chave, item.responsavel);
+                    }
                 }
             });
             
-            // Dos contatos já salvos
+            // Dos contatos já salvos (pode ter nomes adicionais)
             Object.keys(contatosResponsaveis).forEach(nome => {
-                todosResponsaveis.add(nome);
+                const chave = nome.toUpperCase();
+                if (!responsaveisMap.has(chave)) {
+                    responsaveisMap.set(chave, nome);
+                }
             });
             
-            const listaOrdenada = Array.from(todosResponsaveis).sort();
+            // Converter para array e ordenar
+            const listaOrdenada = Array.from(responsaveisMap.values()).sort();
             
             if (listaOrdenada.length === 0) {
                 container.innerHTML = '<p style="color: #a0a0a0; text-align: center;">Nenhum responsável cadastrado.</p>';
@@ -2100,7 +2092,19 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
             }
             
             container.innerHTML = listaOrdenada.map(nome => {
-                const telefone = contatosResponsaveis[nome] || '';
+                // Buscar telefone pelo nome ou variações de case
+                let telefone = contatosResponsaveis[nome] || '';
+                if (!telefone) {
+                    // Tentar encontrar com case diferente
+                    const chave = nome.toUpperCase();
+                    for (const [n, t] of Object.entries(contatosResponsaveis)) {
+                        if (n.toUpperCase() === chave) {
+                            telefone = t;
+                            break;
+                        }
+                    }
+                }
+                
                 return `
                     <div class="contato-item">
                         <span class="contato-nome">${nome}</span>
@@ -2194,8 +2198,17 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
                 return;
             }
             
-            // Remover do cadastro de contatos
-            delete contatosResponsaveis[nome];
+            // Remover do cadastro de contatos (e variações de case)
+            const chave = nome.toUpperCase();
+            const keysToDelete = [];
+            
+            for (const key of Object.keys(contatosResponsaveis)) {
+                if (key.toUpperCase() === chave) {
+                    keysToDelete.push(key);
+                }
+            }
+            
+            keysToDelete.forEach(key => delete contatosResponsaveis[key]);
             
             // Atualizar lista
             renderizarListaContatos();
@@ -2207,6 +2220,14 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
             const nome = input.dataset.nome;
             const telefone = input.value.trim();
             
+            // Remover versões antigas com case diferente
+            const chave = nome.toUpperCase();
+            for (const key of Object.keys(contatosResponsaveis)) {
+                if (key.toUpperCase() === chave && key !== nome) {
+                    delete contatosResponsaveis[key];
+                }
+            }
+            
             if (telefone) {
                 contatosResponsaveis[nome] = telefone;
             } else {
@@ -2214,10 +2235,13 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
             }
         }
         
-        // Salvar contatos no Firebase
+        // Salvar contatos no Firebase (cadastro único - sincroniza com ministrantes)
         function salvarContatos() {
+            // Salvar em contatos_responsaveis
             contatosRef.set(contatosResponsaveis)
                 .then(() => {
+                    // Também atualizar ministrantes no escala_ministracoes
+                    sincronizarMinistrantes();
                     showToast('Contatos salvos com sucesso!');
                 })
                 .catch(err => {
@@ -2225,38 +2249,72 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
                 });
         }
         
-        // Sincronizar com cadastro de aniversariantes
+        // Sincronizar contatos com escala_ministracoes/ministrantes
+        function sincronizarMinistrantes() {
+            ministrantesRef.once('value').then(snapshot => {
+                let ministrantes = snapshot.val() || [];
+                let atualizado = false;
+                
+                // Atualizar telefones dos ministrantes existentes
+                ministrantes = ministrantes.map(m => {
+                    if (m && m.nome) {
+                        const primeiroNome = extrairPrimeiroNome(m.nome);
+                        
+                        // Buscar telefone nos contatos
+                        for (const [nome, telefone] of Object.entries(contatosResponsaveis)) {
+                            if (extrairPrimeiroNome(nome) === primeiroNome) {
+                                if (m.telefone !== telefone) {
+                                    m.telefone = telefone;
+                                    atualizado = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    return m;
+                });
+                
+                if (atualizado) {
+                    ministrantesRef.set(ministrantes).then(() => {
+                        console.log('Ministrantes sincronizados');
+                    });
+                }
+            }).catch(err => {
+                console.log('Erro ao sincronizar ministrantes:', err);
+            });
+        }
+        
+        // Sincronizar com cadastro de ministrantes (Planejamento de Ministrações)
         function sincronizarComAniversariantes() {
-            showToast('Buscando telefones no cadastro de aniversariantes...');
+            showToast('Buscando telefones no Planejamento de Ministrações...');
             
-            aniversariantesRef.once('value').then(snapshot => {
-                const aniversariantes = snapshot.val() || [];
-                let encontrados = 0;
+            ministrantesRef.once('value').then(snapshot => {
+                const ministrantes = snapshot.val() || [];
                 let atualizados = 0;
                 
-                // Para cada responsável, tentar encontrar no cadastro de aniversariantes
+                if (ministrantes.length === 0) {
+                    showToast('Nenhum ministrante encontrado no cadastro.', true);
+                    return;
+                }
+                
+                // Para cada responsável, tentar encontrar no cadastro de ministrantes
                 responsaveis.forEach(nomeResponsavel => {
                     if (!nomeResponsavel || nomeResponsavel.startsWith('---') || nomeResponsavel === 'Outro...') return;
                     
                     // Se já tem telefone cadastrado, pular
                     if (contatosResponsaveis[nomeResponsavel]) return;
                     
-                    const nomeNorm = normalizarNome(nomeResponsavel);
+                    const primeiroNome = extrairPrimeiroNome(nomeResponsavel);
                     
-                    // Buscar no cadastro de aniversariantes
-                    const aniversariante = aniversariantes.find(a => {
-                        if (!a || !a.nome) return false;
-                        const nomeAnivNorm = a.nome.toUpperCase().trim();
-                        
-                        // Busca por nome completo ou parcial
-                        return nomeAnivNorm === nomeNorm || 
-                               nomeAnivNorm.includes(nomeNorm) || 
-                               nomeNorm.includes(nomeAnivNorm.split(' ')[0]);
+                    // Buscar no cadastro de ministrantes
+                    const ministrante = ministrantes.find(m => {
+                        if (!m || !m.nome) return false;
+                        const primeiroNomeMin = extrairPrimeiroNome(m.nome);
+                        return primeiroNomeMin === primeiroNome;
                     });
                     
-                    if (aniversariante && aniversariante.telefone) {
-                        contatosResponsaveis[nomeResponsavel] = aniversariante.telefone;
-                        encontrados++;
+                    if (ministrante && ministrante.telefone) {
+                        contatosResponsaveis[nomeResponsavel] = ministrante.telefone;
                         atualizados++;
                     }
                 });
@@ -2266,19 +2324,16 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
                     if (!item.responsavel || item.responsavel.startsWith('---')) return;
                     if (contatosResponsaveis[item.responsavel]) return;
                     
-                    const nomeNorm = normalizarNome(item.responsavel);
+                    const primeiroNome = extrairPrimeiroNome(item.responsavel);
                     
-                    const aniversariante = aniversariantes.find(a => {
-                        if (!a || !a.nome) return false;
-                        const nomeAnivNorm = a.nome.toUpperCase().trim();
-                        return nomeAnivNorm === nomeNorm || 
-                               nomeAnivNorm.includes(nomeNorm) || 
-                               nomeNorm.includes(nomeAnivNorm.split(' ')[0]);
+                    const ministrante = ministrantes.find(m => {
+                        if (!m || !m.nome) return false;
+                        const primeiroNomeMin = extrairPrimeiroNome(m.nome);
+                        return primeiroNomeMin === primeiroNome;
                     });
                     
-                    if (aniversariante && aniversariante.telefone) {
-                        contatosResponsaveis[item.responsavel] = aniversariante.telefone;
-                        encontrados++;
+                    if (ministrante && ministrante.telefone) {
+                        contatosResponsaveis[item.responsavel] = ministrante.telefone;
                         atualizados++;
                     }
                 });
@@ -2291,8 +2346,195 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
                 }
                 
             }).catch(err => {
-                showToast('Erro ao buscar aniversariantes: ' + err.message, true);
+                showToast('Erro ao buscar ministrantes: ' + err.message, true);
             });
+        }
+
+        // ========================================
+        // GERENCIAMENTO DE MODELOS DE MENSAGEM
+        // ========================================
+        
+        // Referência Firebase para modelos de mensagem
+        const modelosRef = database.ref('modelos_mensagem');
+        
+        // Modelos de mensagem (padrão + personalizados)
+        let modelosMensagem = {
+            'padrao': {
+                nome: '📋 Escalação Padrão',
+                texto: `Paz do Senhor, {nome}! 🙏
+
+Você está escalado(a) para o culto de *{tipoCulto}* no dia *{data}*:
+
+📋 *{atividade}*
+⏰ Horário previsto: *{horario}*
+
+Contamos com você! Deus abençoe! 🙌
+
+*Bispo Vanjivaldo e Pra Kélia*
+_Igreja de Deus Águas Claras - IDAC_`
+            }
+        };
+        
+        // Carregar modelos do Firebase
+        function carregarModelos() {
+            modelosRef.once('value').then(snapshot => {
+                const dados = snapshot.val();
+                if (dados) {
+                    // Mesclar com o padrão (mantém o padrão sempre)
+                    modelosMensagem = { ...modelosMensagem, ...dados };
+                }
+                atualizarSelectModelos();
+                console.log('Modelos carregados:', Object.keys(modelosMensagem).length);
+            }).catch(err => {
+                console.log('Erro ao carregar modelos:', err);
+            });
+        }
+        
+        // Carregar modelos ao iniciar
+        carregarModelos();
+        
+        // Atualizar o select de tipos de mensagem
+        function atualizarSelectModelos() {
+            const select = document.getElementById('tipoMensagemSelect');
+            if (!select) return;
+            
+            select.innerHTML = Object.entries(modelosMensagem).map(([id, modelo]) => {
+                return `<option value="${id}">${modelo.nome}</option>`;
+            }).join('');
+        }
+        
+        // Carregar tipo de mensagem selecionado
+        function carregarTipoMensagem() {
+            const select = document.getElementById('tipoMensagemSelect');
+            const textarea = document.getElementById('mensagemTemplate');
+            
+            if (!select || !textarea) return;
+            
+            const tipoSelecionado = select.value;
+            const modelo = modelosMensagem[tipoSelecionado];
+            
+            if (modelo) {
+                textarea.value = modelo.texto;
+            }
+        }
+        
+        // Abrir modal de gerenciamento de mensagens
+        function abrirModalMensagens() {
+            renderizarListaModelos();
+            document.getElementById('modalMensagens').classList.add('active');
+        }
+        
+        // Renderizar lista de modelos
+        function renderizarListaModelos() {
+            const container = document.getElementById('modelosList');
+            
+            const modelos = Object.entries(modelosMensagem);
+            
+            if (modelos.length === 0) {
+                container.innerHTML = '<p style="color: #a0a0a0; text-align: center;">Nenhum modelo cadastrado.</p>';
+                return;
+            }
+            
+            container.innerHTML = modelos.map(([id, modelo]) => {
+                const isPadrao = id === 'padrao';
+                return `
+                    <div class="contato-item" style="flex-direction: column; align-items: stretch;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span class="contato-nome">${modelo.nome} ${isPadrao ? '(padrão)' : ''}</span>
+                            ${!isPadrao ? `<button class="btn-excluir-contato" onclick="excluirModelo('${id}')">🗑️</button>` : ''}
+                        </div>
+                        <textarea 
+                            style="width: 100%; min-height: 80px; padding: 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: #fff; font-size: 0.85rem; resize: vertical;"
+                            data-id="${id}"
+                            onchange="atualizarModelo('${id}', this.value)"
+                            ${isPadrao ? '' : ''}
+                        >${modelo.texto}</textarea>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Adicionar novo modelo
+        function adicionarNovoModelo() {
+            const nome = document.getElementById('novoModeloNome').value.trim();
+            const texto = document.getElementById('novoModeloTexto').value.trim();
+            
+            if (!nome) {
+                showToast('Digite o nome do modelo!', true);
+                return;
+            }
+            
+            if (!texto) {
+                showToast('Digite o texto da mensagem!', true);
+                return;
+            }
+            
+            // Gerar ID único
+            const id = 'modelo_' + Date.now();
+            
+            // Adicionar ao objeto
+            modelosMensagem[id] = {
+                nome: nome,
+                texto: texto
+            };
+            
+            // Limpar formulário
+            document.getElementById('novoModeloNome').value = '';
+            document.getElementById('novoModeloTexto').value = '';
+            
+            // Atualizar lista e select
+            renderizarListaModelos();
+            atualizarSelectModelos();
+            
+            showToast(`Modelo "${nome}" adicionado! Clique em Salvar para confirmar.`);
+        }
+        
+        // Atualizar texto de um modelo
+        function atualizarModelo(id, novoTexto) {
+            if (modelosMensagem[id]) {
+                modelosMensagem[id].texto = novoTexto;
+            }
+        }
+        
+        // Excluir modelo
+        function excluirModelo(id) {
+            if (id === 'padrao') {
+                showToast('Não é possível excluir o modelo padrão!', true);
+                return;
+            }
+            
+            const nome = modelosMensagem[id]?.nome || id;
+            
+            if (!confirm(`Excluir o modelo "${nome}"?`)) {
+                return;
+            }
+            
+            delete modelosMensagem[id];
+            
+            renderizarListaModelos();
+            atualizarSelectModelos();
+            
+            showToast(`Modelo "${nome}" removido! Clique em Salvar para confirmar.`);
+        }
+        
+        // Salvar modelos no Firebase
+        function salvarModelos() {
+            // Salvar apenas os modelos personalizados (não o padrão)
+            const modelosParaSalvar = {};
+            Object.entries(modelosMensagem).forEach(([id, modelo]) => {
+                if (id !== 'padrao') {
+                    modelosParaSalvar[id] = modelo;
+                }
+            });
+            
+            modelosRef.set(modelosParaSalvar)
+                .then(() => {
+                    atualizarSelectModelos();
+                    showToast('Modelos salvos com sucesso!');
+                })
+                .catch(err => {
+                    showToast('Erro ao salvar modelos: ' + err.message, true);
+                });
         }
     </script>
 </body>
