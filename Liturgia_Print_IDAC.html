@@ -304,8 +304,8 @@
             'Culto Especial': 'Esp'
         };
 
-        // Função para atualizar título da página (sugere nome do PDF)
-        function atualizarTitulo() {
+        // Função para gerar nome do arquivo
+        function gerarNomeArquivo() {
             const data = dataCultoEl.value;
             const tipo = tipoCultoEl.value;
             
@@ -317,15 +317,41 @@
                 const dataFormatada = `${dia}${mes}${ano}`;
                 const tipoAbrev = tipoAbreviado[tipo] || tipo.substring(0, 3);
                 
-                // Atualiza o título da página - navegador usa como sugestão de nome do PDF
-                document.title = `Liturgia_IDAC_${dataFormatada}_${tipoAbrev}`;
+                return `Liturgia_IDAC_${dataFormatada}_${tipoAbrev}`;
             }
+            return 'Liturgia_IDAC';
+        }
+
+        // Função para atualizar título da página
+        function atualizarTitulo() {
+            document.title = gerarNomeArquivo();
         }
 
         // Função para imprimir/salvar PDF
         function gerarPDF() {
-            atualizarTitulo();
-            window.print();
+            const nomeArquivo = gerarNomeArquivo();
+            
+            // Atualiza o título
+            document.title = nomeArquivo;
+            
+            // Pequeno delay para garantir que o título foi atualizado
+            setTimeout(() => {
+                // Mostra o nome sugerido para o usuário copiar se necessário
+                const copiar = confirm(
+                    `📄 Nome sugerido para o arquivo:\n\n${nomeArquivo}.pdf\n\n` +
+                    `Cole este nome no campo "Nome" da janela de salvar.\n\n` +
+                    `Clique OK para abrir a janela de impressão.`
+                );
+                
+                if (copiar) {
+                    // Copia para a área de transferência
+                    navigator.clipboard.writeText(nomeArquivo).then(() => {
+                        window.print();
+                    }).catch(() => {
+                        window.print();
+                    });
+                }
+            }, 100);
         }
 
         // Função para voltar
