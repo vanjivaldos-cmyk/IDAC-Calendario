@@ -31,6 +31,7 @@
             display: flex;
             gap: 10px;
             justify-content: center;
+            align-items: center;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
@@ -60,6 +61,26 @@
         .toolbar button:hover {
             opacity: 0.9;
             transform: translateY(-1px);
+        }
+        
+        .nome-arquivo {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: 1px dashed #ffd700;
+        }
+        
+        .nome-arquivo:hover {
+            background: rgba(255,215,0,0.3);
+        }
+        
+        .nome-arquivo small {
+            display: block;
+            color: #a0a0a0;
+            font-size: 0.65rem;
         }
         
         /* Conteúdo para impressão */
@@ -258,7 +279,11 @@
                 <option value="Ceia do Senhor">Ceia do Senhor</option>
                 <option value="Culto Especial">Culto Especial</option>
             </select>
-            <button class="btn-print" onclick="gerarPDF()">🖨️ Imprimir / Salvar PDF</button>
+            <div class="nome-arquivo" id="nomeArquivo" onclick="copiarNome()" title="Clique para copiar">
+                <span id="nomeArquivoTexto">Liturgia_IDAC_...</span>
+                <small>📋 Clique para copiar</small>
+            </div>
+            <button class="btn-print" onclick="gerarPDF()">🖨️ Salvar PDF</button>
             <button class="btn-back" onclick="voltarPagina()">← Voltar</button>
         </div>
         
@@ -324,34 +349,37 @@
 
         // Função para atualizar título da página
         function atualizarTitulo() {
-            document.title = gerarNomeArquivo();
+            const nome = gerarNomeArquivo();
+            document.title = nome;
+            document.getElementById('nomeArquivoTexto').textContent = nome + '.pdf';
+        }
+
+        // Função para copiar nome do arquivo
+        function copiarNome() {
+            const nomeArquivo = gerarNomeArquivo();
+            navigator.clipboard.writeText(nomeArquivo).then(() => {
+                const el = document.getElementById('nomeArquivo');
+                el.style.background = 'rgba(76, 205, 196, 0.3)';
+                el.querySelector('small').textContent = '✅ Copiado!';
+                setTimeout(() => {
+                    el.style.background = 'rgba(255,215,0,0.2)';
+                    el.querySelector('small').textContent = '📋 Clique para copiar';
+                }, 2000);
+            });
         }
 
         // Função para imprimir/salvar PDF
         function gerarPDF() {
             const nomeArquivo = gerarNomeArquivo();
             
-            // Atualiza o título
+            // Atualiza o título (alguns navegadores usam como nome do PDF)
             document.title = nomeArquivo;
             
-            // Pequeno delay para garantir que o título foi atualizado
-            setTimeout(() => {
-                // Mostra o nome sugerido para o usuário copiar se necessário
-                const copiar = confirm(
-                    `📄 Nome sugerido para o arquivo:\n\n${nomeArquivo}.pdf\n\n` +
-                    `Cole este nome no campo "Nome" da janela de salvar.\n\n` +
-                    `Clique OK para abrir a janela de impressão.`
-                );
-                
-                if (copiar) {
-                    // Copia para a área de transferência
-                    navigator.clipboard.writeText(nomeArquivo).then(() => {
-                        window.print();
-                    }).catch(() => {
-                        window.print();
-                    });
-                }
-            }, 100);
+            // Copia para a área de transferência silenciosamente
+            navigator.clipboard.writeText(nomeArquivo).catch(() => {});
+            
+            // Abre a impressão
+            window.print();
         }
 
         // Função para voltar
