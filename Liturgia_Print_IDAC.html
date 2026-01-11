@@ -258,7 +258,7 @@
                 <option value="Culto Especial">Culto Especial</option>
             </select>
             <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
-            <button class="btn-back" onclick="window.history.back()">← Voltar</button>
+            <button class="btn-back" onclick="voltarPagina()">← Voltar</button>
         </div>
         
         <div class="print-content" id="printContent">
@@ -293,6 +293,21 @@
         // Definir data de hoje
         const hoje = new Date().toISOString().split('T')[0];
         dataCultoEl.value = hoje;
+
+        // Função para voltar
+        function voltarPagina() {
+            // Tenta fechar a aba (funciona se foi aberta por script)
+            if (window.opener) {
+                window.close();
+            } else {
+                // Se não conseguir fechar, volta no histórico ou vai para a página principal
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = 'Liturgia_IDAC.html';
+                }
+            }
+        }
 
         // Eventos
         dataCultoEl.addEventListener('change', carregarLiturgia);
