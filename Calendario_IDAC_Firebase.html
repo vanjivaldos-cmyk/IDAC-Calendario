@@ -175,6 +175,7 @@
         .event-dot.feriado { background: #dc2626; }
         .event-dot.copa { background: #15803d; }
         .event-dot.eleicao { background: #7c3aed; }
+        .event-dot.teens { background: #f59e0b; }
 
         /* Modal */
         .modal-overlay {
@@ -366,7 +367,7 @@
             text-align: center;
         }
         
-        /* Filtros com Checkboxes */
+        /* Filtros com Checkboxes - Dropdown Style */
         .filters-container {
             background: rgba(255,255,255,0.05);
             border-radius: 10px;
@@ -384,20 +385,48 @@
             font-size: 1rem;
         }
         .filter-section {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            overflow: hidden;
         }
         .filter-section-title {
             color: #4ecdc4;
-            font-size: 0.85rem;
-            margin-bottom: 8px;
+            font-size: 0.9rem;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            cursor: pointer;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 5px;
+            transition: background 0.2s;
+        }
+        .filter-section-title:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .filter-section-title .arrow {
+            transition: transform 0.3s;
+        }
+        .filter-section-title.open .arrow {
+            transform: rotate(180deg);
+        }
+        .filter-section-title .selected-count {
+            background: #ffd700;
+            color: #1a1a2e;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 10px;
         }
         .filter-options {
-            display: flex;
+            display: none;
             flex-wrap: wrap;
             gap: 8px;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+        }
+        .filter-options.open {
+            display: flex;
         }
         .filter-checkbox {
             display: flex;
@@ -484,6 +513,142 @@
         .instructions strong {
             color: #ffd700;
         }
+
+        /* ==================== ESTILOS DE IMPRESSÃO / PDF ==================== */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+            
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            .header {
+                margin-bottom: 10px !important;
+            }
+            
+            .header h1 {
+                color: #1a1a2e !important;
+                text-shadow: none !important;
+                font-size: 1.5rem !important;
+            }
+            
+            .header h2 {
+                color: #666 !important;
+                font-size: 0.9rem !important;
+            }
+            
+            /* Esconder elementos não necessários na impressão */
+            .toolbar, .sync-status, .instructions, .legend, 
+            .events-list, .modal-overlay, .toast {
+                display: none !important;
+            }
+            
+            .calendar-container {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 8px !important;
+                max-width: 100% !important;
+            }
+            
+            .month-card {
+                background: white !important;
+                border: 1px solid #ccc !important;
+                border-radius: 5px !important;
+                padding: 8px !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            .month-header {
+                color: #1a1a2e !important;
+                font-size: 0.9rem !important;
+                border-bottom: 1px solid #ccc !important;
+                padding-bottom: 5px !important;
+                margin-bottom: 5px !important;
+            }
+            
+            .weekdays {
+                font-size: 0.6rem !important;
+                color: #666 !important;
+            }
+            
+            .day {
+                font-size: 0.65rem !important;
+                min-height: 25px !important;
+                border: 1px solid #eee !important;
+            }
+            
+            .day.sunday {
+                color: #dc2626 !important;
+            }
+            
+            .day.has-event {
+                background: #fff3cd !important;
+                border-color: #ffc107 !important;
+            }
+            
+            .event-dot {
+                width: 4px !important;
+                height: 4px !important;
+            }
+            
+            .event-dot.lideranca { background: #ff6b6b !important; }
+            .event-dot.tarde-deus { background: #4ecdc4 !important; }
+            .event-dot.curso { background: #a855f7 !important; }
+            .event-dot.candeias { background: #f97316 !important; }
+            .event-dot.mulheres { background: #ec4899 !important; }
+            .event-dot.especial { background: #ffd700 !important; }
+            .event-dot.ebf { background: #22c55e !important; }
+            .event-dot.homens { background: #3b82f6 !important; }
+            .event-dot.outro { background: #6b7280 !important; }
+            .event-dot.feriado { background: #dc2626 !important; }
+            .event-dot.copa { background: #15803d !important; }
+            .event-dot.eleicao { background: #7c3aed !important; }
+            .event-dot.teens { background: #f59e0b !important; }
+        }
+        
+        /* Versão só calendário para impressão */
+        body.print-calendar-only .events-list,
+        body.print-calendar-only .legend {
+            display: none !important;
+        }
+        
+        /* Versão só lista para impressão */
+        body.print-list-only .calendar-container,
+        body.print-list-only .legend {
+            display: none !important;
+        }
+        
+        @media print {
+            body.print-list-only .events-list {
+                display: block !important;
+            }
+            
+            body.print-list-only .filters-container {
+                display: none !important;
+            }
+            
+            body.print-list-only .events-table {
+                font-size: 0.7rem !important;
+            }
+            
+            body.print-list-only .events-table th,
+            body.print-list-only .events-table td {
+                padding: 4px !important;
+                border: 1px solid #ccc !important;
+            }
+            
+            body.print-list-only .events-table .actions {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -500,7 +665,10 @@
 
     <div class="toolbar">
         <button class="btn-add admin-only" onclick="openAddModal()" style="display:none">➕ Novo Evento</button>
+        <button class="btn-add admin-only" onclick="openImportModal()" style="display:none; background: #f59e0b;">📝 Importar Lote</button>
         <button class="btn-export" onclick="exportEvents()">📤 Exportar JSON</button>
+        <button style="padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: bold; background: #8b5cf6; color: white;" onclick="printCalendar()">🖨️ Imprimir Calendário</button>
+        <button style="padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: bold; background: #06b6d4; color: white;" onclick="printList()">📋 Imprimir Lista</button>
         <button class="btn-clear admin-only" onclick="clearAllEvents()" style="display:none">🗑️ Limpar Tudo</button>
         <button id="adminBtn" onclick="logoutAdmin()" style="padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: bold; background: #6b7280; color: white;">🔐 Admin</button>
     </div>
@@ -522,6 +690,7 @@
             <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>Feriado Nacional</div>
             <div class="legend-item"><div class="legend-dot" style="background:#15803d"></div>Copa do Mundo</div>
             <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>Eleições</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Min. Teens</div>
         </div>
     </div>
 
@@ -534,17 +703,26 @@
             </div>
             
             <div class="filter-section">
-                <div class="filter-section-title">📅 Mês</div>
+                <div class="filter-section-title" onclick="toggleFilterSection('months', this)">
+                    <span>📅 Mês <span class="selected-count" id="countMonths" style="display:none">0</span></span>
+                    <span class="arrow">▼</span>
+                </div>
                 <div class="filter-options" id="filterMonths"></div>
             </div>
             
             <div class="filter-section">
-                <div class="filter-section-title">🎯 Tipo de Evento</div>
+                <div class="filter-section-title" onclick="toggleFilterSection('types', this)">
+                    <span>🎯 Tipo de Evento <span class="selected-count" id="countTypes" style="display:none">0</span></span>
+                    <span class="arrow">▼</span>
+                </div>
                 <div class="filter-options" id="filterTypes"></div>
             </div>
             
             <div class="filter-section">
-                <div class="filter-section-title">👤 Responsável</div>
+                <div class="filter-section-title" onclick="toggleFilterSection('resps', this)">
+                    <span>👤 Responsável <span class="selected-count" id="countResps" style="display:none">0</span></span>
+                    <span class="arrow">▼</span>
+                </div>
                 <div class="filter-options" id="filterResps"></div>
             </div>
         </div>
@@ -691,6 +869,38 @@
                 <button class="btn-delete" onclick="deleteEditingEvent()">Excluir</button>
                 <button class="btn-cancel" onclick="closeEditModal()">Cancelar</button>
                 <button class="btn-save" onclick="updateEvent()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para importar eventos em lote -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal" style="max-width: 700px;">
+            <h3>📝 Importar Eventos em Lote</h3>
+            <p style="color: #a0a0a0; font-size: 0.85rem; margin-bottom: 15px;">
+                Cole a lista de eventos no formato abaixo. Um evento por linha.<br>
+                <strong style="color: #ffd700;">Formato:</strong> DATA | HORÁRIO | TÍTULO | RESPONSÁVEL | CATEGORIA | OBSERVAÇÕES
+            </p>
+            <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.8rem; color: #4ecdc4;">
+                <strong>Exemplo:</strong><br>
+                17/01/2026 | 18h | Encontro Online | Min. Teens | teens |<br>
+                16/02/2026 | | Acampadentro | Min. Teens | teens | Dia 1<br>
+                01/05/2026 | 9h às 18h | Acampamento | Min. Teens | teens | Dia 1
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.75rem; color: #a0a0a0;">
+                <strong style="color: #ffd700;">Categorias válidas:</strong> lideranca, tarde-deus, curso, candeias, mulheres, homens, ebf, especial, feriado, copa, eleicao, teens, outro
+            </div>
+            <div class="form-group">
+                <label>Cole os eventos aqui:</label>
+                <textarea id="importText" rows="10" placeholder="17/01/2026 | 18h | Encontro Online | Min. Teens | teens |
+31/01/2026 | 19h | Candeias Teens | Min. Teens | teens |
+16/02/2026 | | Acampadentro | Min. Teens | teens | Dia 1" style="font-family: monospace; font-size: 0.85rem;"></textarea>
+            </div>
+            <div id="importPreview" style="margin-bottom: 15px;"></div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeImportModal()">Cancelar</button>
+                <button style="flex:1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: bold; background: #3b82f6; color: white;" onclick="previewImport()">👁️ Visualizar</button>
+                <button class="btn-save" onclick="executeImport()">✅ Importar</button>
             </div>
         </div>
     </div>
@@ -855,6 +1065,51 @@
             addDefaultEvent('2026-11-29', 'Confraternização Min. Mulheres', '', 'Min. Mulheres', 'mulheres', '');
             addDefaultEvent('2026-12-20', 'Cantata de Natal (proposta)', '', 'Louvor e Artes', 'especial', '');
             addDefaultEvent('2026-12-31', 'Culto e Jantar da Virada (proposta)', '', '', 'especial', '');
+
+            // ========== MINISTÉRIO TEENS ==========
+            // Janeiro
+            addDefaultEvent('2026-01-17', 'Encontro Online Teens', '18h', 'Min. Teens', 'teens', '');
+            addDefaultEvent('2026-01-31', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            // Fevereiro
+            addDefaultEvent('2026-02-14', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            addDefaultEvent('2026-02-16', 'Acampadentro Teens', '', 'Min. Teens', 'teens', 'Dia 1');
+            addDefaultEvent('2026-02-17', 'Acampadentro Teens', '', 'Min. Teens', 'teens', 'Dia 2');
+            addDefaultEvent('2026-02-28', 'Evento Regional de Oração', '', 'Min. Teens', 'teens', '');
+            // Março
+            addDefaultEvent('2026-03-14', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            addDefaultEvent('2026-03-28', 'Treinamento de Liderança Teens', '', 'Min. Teens', 'teens', '');
+            // Abril
+            addDefaultEvent('2026-04-11', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            addDefaultEvent('2026-04-25', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            // Maio
+            addDefaultEvent('2026-05-01', 'Acampamento Teens', '', 'Min. Teens', 'teens', 'Dia 1');
+            addDefaultEvent('2026-05-02', 'Acampamento Teens', '', 'Min. Teens', 'teens', 'Dia 2');
+            addDefaultEvent('2026-05-03', 'Acampamento Teens', '', 'Min. Teens', 'teens', 'Dia 3');
+            addDefaultEvent('2026-05-23', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            // Junho
+            addDefaultEvent('2026-06-06', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            addDefaultEvent('2026-06-20', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            // Julho
+            addDefaultEvent('2026-07-04', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            addDefaultEvent('2026-07-25', 'Curso de Evangelismo Teens', '9h às 18h', 'Min. Teens', 'teens', '');
+            // Agosto
+            addDefaultEvent('2026-08-07', 'Vigília Teens', '22h30', 'Min. Teens', 'teens', '');
+            addDefaultEvent('2026-08-22', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            // Setembro
+            addDefaultEvent('2026-09-04', 'Latin Fast Teens', '', 'Min. Teens', 'teens', 'Dia 1');
+            addDefaultEvent('2026-09-05', 'Latin Fast Teens', '', 'Min. Teens', 'teens', 'Dia 2');
+            addDefaultEvent('2026-09-06', 'Latin Fast Teens', '', 'Min. Teens', 'teens', 'Dia 3');
+            addDefaultEvent('2026-09-12', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            addDefaultEvent('2026-09-20', 'Culto Teens', '18h', 'Min. Teens', 'teens', '');
+            // Outubro
+            addDefaultEvent('2026-10-02', 'Vigília Teens', '22h30', 'Min. Teens', 'teens', '');
+            addDefaultEvent('2026-10-24', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            // Novembro
+            addDefaultEvent('2026-11-07', 'Candeias Teens', '19h', 'Min. Teens', 'teens', '');
+            addDefaultEvent('2026-11-20', '24 Horas Teens', '6h às 6h', 'Min. Teens', 'teens', 'Início');
+            addDefaultEvent('2026-11-21', '24 Horas Teens', '6h às 6h', 'Min. Teens', 'teens', 'Término');
+            // Dezembro
+            addDefaultEvent('2026-12-05', 'Confraternização Teens', '11h às 18h', 'Min. Teens', 'teens', '');
 
             // Feriados Nacionais
             addDefaultEvent('2026-01-01', 'Confraternização Universal (Ano Novo)', '', '', 'feriado', 'Feriado Nacional');
@@ -1072,6 +1327,7 @@
                 'feriado': 'Feriado',
                 'copa': 'Copa do Mundo',
                 'eleicao': 'Eleições',
+                'teens': 'Min. Teens',
                 'outro': 'Outros'
             };
             const types = [...new Set(allEvents.map(e => e.type))].sort();
@@ -1112,6 +1368,7 @@
                 if (type === 'resp') selectedResps = selectedResps.filter(r => r !== value);
             }
             updateEventsTable();
+            updateFilterCounts();
         }
 
         function clearFilters() {
@@ -1120,6 +1377,40 @@
             selectedResps = [];
             buildFilterOptions();
             updateEventsTable();
+            updateFilterCounts();
+        }
+
+        function toggleFilterSection(section, titleElement) {
+            const optionsDiv = document.getElementById('filter' + section.charAt(0).toUpperCase() + section.slice(1));
+            optionsDiv.classList.toggle('open');
+            titleElement.classList.toggle('open');
+        }
+
+        function updateFilterCounts() {
+            const countMonths = document.getElementById('countMonths');
+            const countTypes = document.getElementById('countTypes');
+            const countResps = document.getElementById('countResps');
+            
+            if (selectedMonths.length > 0) {
+                countMonths.textContent = selectedMonths.length;
+                countMonths.style.display = 'inline';
+            } else {
+                countMonths.style.display = 'none';
+            }
+            
+            if (selectedTypes.length > 0) {
+                countTypes.textContent = selectedTypes.length;
+                countTypes.style.display = 'inline';
+            } else {
+                countTypes.style.display = 'none';
+            }
+            
+            if (selectedResps.length > 0) {
+                countResps.textContent = selectedResps.length;
+                countResps.style.display = 'inline';
+            } else {
+                countResps.style.display = 'none';
+            }
         }
 
         // ==================== TABELA DE EVENTOS ====================
@@ -1451,6 +1742,163 @@
             a.click();
             URL.revokeObjectURL(url);
             showToast('Arquivo exportado com sucesso!');
+        }
+
+        function printCalendar() {
+            document.body.classList.add('print-calendar-only');
+            document.body.classList.remove('print-list-only');
+            
+            // Mostrar instruções
+            showToast('Preparando impressão do calendário...');
+            
+            setTimeout(() => {
+                window.print();
+                document.body.classList.remove('print-calendar-only');
+            }, 500);
+        }
+
+        function printList() {
+            document.body.classList.add('print-list-only');
+            document.body.classList.remove('print-calendar-only');
+            
+            showToast('Preparando impressão da lista...');
+            
+            setTimeout(() => {
+                window.print();
+                document.body.classList.remove('print-list-only');
+            }, 500);
+        }
+
+        // ==================== IMPORTAÇÃO EM LOTE ====================
+        function openImportModal() {
+            if (!isAdmin) {
+                showToast('Apenas administradores podem importar eventos', true);
+                return;
+            }
+            document.getElementById('importText').value = '';
+            document.getElementById('importPreview').innerHTML = '';
+            document.getElementById('importModal').classList.add('active');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('active');
+        }
+
+        function parseImportLine(line) {
+            const parts = line.split('|').map(p => p.trim());
+            if (parts.length < 4) return null;
+            
+            // Parsear data (DD/MM/YYYY para YYYY-MM-DD)
+            const dateStr = parts[0];
+            const dateMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            if (!dateMatch) return null;
+            
+            const day = dateMatch[1].padStart(2, '0');
+            const month = dateMatch[2].padStart(2, '0');
+            const year = dateMatch[3];
+            const dateKey = `${year}-${month}-${day}`;
+            
+            return {
+                date: dateKey,
+                time: parts[1] || '',
+                title: parts[2] || '',
+                resp: parts[3] || '',
+                type: parts[4] || 'especial',
+                notes: parts[5] || ''
+            };
+        }
+
+        function previewImport() {
+            const text = document.getElementById('importText').value.trim();
+            if (!text) {
+                showToast('Cole os eventos primeiro', true);
+                return;
+            }
+            
+            const lines = text.split('\n').filter(l => l.trim());
+            const preview = document.getElementById('importPreview');
+            
+            let validCount = 0;
+            let invalidCount = 0;
+            let html = '<div style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">';
+            html += '<table style="width: 100%; font-size: 0.75rem; border-collapse: collapse;">';
+            html += '<tr style="color: #ffd700;"><th>Data</th><th>Hora</th><th>Evento</th><th>Resp.</th><th>Status</th></tr>';
+            
+            lines.forEach((line, index) => {
+                const parsed = parseImportLine(line);
+                if (parsed && parsed.title) {
+                    validCount++;
+                    html += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <td>${formatDateBR(parsed.date)}</td>
+                        <td>${parsed.time || '-'}</td>
+                        <td>${parsed.title}</td>
+                        <td>${parsed.resp || '-'}</td>
+                        <td style="color: #22c55e;">✅</td>
+                    </tr>`;
+                } else {
+                    invalidCount++;
+                    html += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #ef4444;">
+                        <td colspan="4">${line.substring(0, 50)}...</td>
+                        <td>❌</td>
+                    </tr>`;
+                }
+            });
+            
+            html += '</table></div>';
+            html += `<p style="margin-top: 10px; font-size: 0.85rem;">✅ <strong style="color: #22c55e;">${validCount}</strong> válidos | ❌ <strong style="color: #ef4444;">${invalidCount}</strong> inválidos</p>`;
+            
+            preview.innerHTML = html;
+        }
+
+        function executeImport() {
+            if (!isAdmin) {
+                showToast('Apenas administradores podem importar eventos', true);
+                return;
+            }
+            
+            const text = document.getElementById('importText').value.trim();
+            if (!text) {
+                showToast('Cole os eventos primeiro', true);
+                return;
+            }
+            
+            const lines = text.split('\n').filter(l => l.trim());
+            let importedCount = 0;
+            
+            lines.forEach(line => {
+                const parsed = parseImportLine(line);
+                if (parsed && parsed.title) {
+                    if (!events[parsed.date]) events[parsed.date] = [];
+                    
+                    // Verificar se já existe evento igual (evitar duplicatas)
+                    const exists = events[parsed.date].some(e => 
+                        e.title === parsed.title && e.time === parsed.time
+                    );
+                    
+                    if (!exists) {
+                        events[parsed.date].push({
+                            id: generateId(),
+                            title: parsed.title,
+                            time: parsed.time,
+                            resp: parsed.resp,
+                            type: parsed.type,
+                            notes: parsed.notes
+                        });
+                        importedCount++;
+                    }
+                }
+            });
+            
+            if (importedCount > 0) {
+                saveToFirebase();
+                createCalendar();
+                buildFilterOptions();
+                updateEventsTable();
+                closeImportModal();
+                showToast(`✅ ${importedCount} evento(s) importado(s) com sucesso!`);
+            } else {
+                showToast('Nenhum evento novo para importar', true);
+            }
         }
 
         function clearAllEvents() {
