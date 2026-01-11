@@ -328,7 +328,6 @@
                         <option value="Domingo Manhã">Domingo Manhã</option>
                         <option value="Domingo Noite" selected>Domingo Noite</option>
                         <option value="Quarta-feira">Quarta-feira</option>
-                        <option value="Sexta-feira">Sexta-feira</option>
                         <option value="Culto Especial">Culto Especial</option>
                     </select>
                 </div>
@@ -341,7 +340,8 @@
 
         <div class="toolbar">
             <button class="btn-add admin-only" onclick="adicionarLinha()">➕ Adicionar Item</button>
-            <button class="btn-template admin-only" onclick="carregarTemplate()">📝 Carregar Template</button>
+            <button class="btn-template admin-only" onclick="carregarLiturgiaSalva()">📂 Carregar Salvo</button>
+            <button class="btn-template admin-only" style="background: #6366f1;" onclick="carregarTemplate()">📝 Novo Template</button>
             <button class="btn-save admin-only" onclick="salvarLiturgia()">💾 Salvar</button>
             <button class="btn-print" onclick="gerarPDF()">📄 Gerar PDF</button>
             <button class="btn-clear admin-only" onclick="limparLiturgia()">🗑️ Limpar</button>
@@ -444,19 +444,50 @@
             'Outro...'
         ];
         
-        // Atividades padrão (template)
-        const templateDomingoNoite = [
-            { atividade: 'Prelúdio Musical com Louvor Multimídia', responsavel: 'MÍDIA', duracao: 5 },
-            { atividade: 'Abertura com Saudação aos Presentes', responsavel: 'Pra. Jaqueline', duracao: 2 },
-            { atividade: 'Louvor de Celebração', responsavel: 'Min. Louvor', duracao: 20 },
-            { atividade: 'Oração pelos enfermos', responsavel: 'Ev. Silvana', duracao: 5 },
-            { atividade: 'Avisos da Semana', responsavel: 'Diác. Junio', duracao: 10 },
-            { atividade: 'Ofertório', responsavel: 'Pra. Miguelina', duracao: 10 },
-            { atividade: 'Momento KIDS', responsavel: 'Diác. Bruno', duracao: 5 },
-            { atividade: 'Ministração da Palavra', responsavel: 'Bp. Vanjivaldo', duracao: 45 },
-            { atividade: 'Momento Convite-Apelo (oração pela semana)', responsavel: 'Pra. Nelcy', duracao: 15 },
-            { atividade: 'Benção Apostólica', responsavel: 'Bp. Vanjivaldo', duracao: 10 }
-        ];
+        // Atividades padrão (templates por tipo de culto)
+        const templates = {
+            'Domingo Manhã': [
+                { atividade: 'Prelúdio Musical com Louvor Multimídia', responsavel: 'MÍDIA', duracao: 5 },
+                { atividade: 'Abertura com Saudação aos Presentes', responsavel: '', duracao: 5 },
+                { atividade: 'Louvor de Celebração', responsavel: 'Louvor e Artes', duracao: 15 },
+                { atividade: 'Momento KIDS', responsavel: 'Min. KIDS', duracao: 5 },
+                { atividade: 'Ministração da Palavra', responsavel: '', duracao: 50 },
+                { atividade: 'Ofertório', responsavel: '', duracao: 10 },
+                { atividade: 'Reflexão Final', responsavel: 'Bp. Vanjivaldo', duracao: 10 },
+                { atividade: 'Término e Benção Apostólica', responsavel: 'Bp. Vanjivaldo', duracao: 5 }
+            ],
+            'Domingo Noite': [
+                { atividade: 'Prelúdio Musical com Louvor Multimídia', responsavel: 'MÍDIA', duracao: 5 },
+                { atividade: 'Abertura com Saudação aos Presentes', responsavel: 'Pra. Jaqueline', duracao: 2 },
+                { atividade: 'Louvor de Celebração', responsavel: 'Min. Louvor', duracao: 20 },
+                { atividade: 'Oração pelos enfermos', responsavel: 'Ev. Silvana', duracao: 5 },
+                { atividade: 'Avisos da Semana', responsavel: 'Diác. Junio', duracao: 10 },
+                { atividade: 'Ofertório', responsavel: 'Pra. Miguelina', duracao: 10 },
+                { atividade: 'Momento KIDS', responsavel: 'Diác. Bruno', duracao: 5 },
+                { atividade: 'Ministração da Palavra', responsavel: 'Bp. Vanjivaldo', duracao: 45 },
+                { atividade: 'Momento Convite-Apelo (oração pela semana)', responsavel: 'Pra. Nelcy', duracao: 15 },
+                { atividade: 'Benção Apostólica', responsavel: 'Bp. Vanjivaldo', duracao: 10 }
+            ],
+            'Quarta-feira': [
+                { atividade: 'Louvor de Abertura', responsavel: 'Min. Louvor', duracao: 15 },
+                { atividade: 'Oração e Intercessão', responsavel: 'Min. Intercessão', duracao: 20 },
+                { atividade: 'Estudo Bíblico', responsavel: '', duracao: 40 },
+                { atividade: 'Avisos', responsavel: '', duracao: 5 },
+                { atividade: 'Encerramento', responsavel: '', duracao: 5 }
+            ],
+            'Culto Especial': [
+                { atividade: 'Prelúdio Musical', responsavel: 'MÍDIA', duracao: 10 },
+                { atividade: 'Abertura', responsavel: '', duracao: 5 },
+                { atividade: 'Louvor e Adoração', responsavel: 'Min. Louvor', duracao: 30 },
+                { atividade: 'Momento Especial', responsavel: '', duracao: 15 },
+                { atividade: 'Ministração da Palavra', responsavel: '', duracao: 45 },
+                { atividade: 'Ofertório', responsavel: '', duracao: 10 },
+                { atividade: 'Encerramento e Benção', responsavel: 'Bp. Vanjivaldo', duracao: 10 }
+            ]
+        };
+
+        // Manter compatibilidade com código antigo
+        const templateDomingoNoite = templates['Domingo Noite'];
 
         let liturgiaItens = [];
 
@@ -464,102 +495,151 @@
         function gerarPDF() {
             const data = document.getElementById('dataCulto').value;
             const tipo = document.getElementById('tipoCulto').value;
+            const horaInicio = document.getElementById('horaInicio').value;
             
             if (liturgiaItens.length === 0) {
                 showToast('Adicione itens à liturgia primeiro!', true);
                 return;
             }
             
-            // Formatar data
-            const dataFormatada = data ? new Date(data + 'T12:00:00').toLocaleDateString('pt-BR') : '';
+            // Formatar data abreviada (dom, 04 de jan de 26)
+            const dataObj = new Date(data + 'T12:00:00');
+            const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+            const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+            const diaSemana = diasSemana[dataObj.getDay()];
+            const dia = String(dataObj.getDate()).padStart(2, '0');
+            const mes = meses[dataObj.getMonth()];
+            const ano = String(dataObj.getFullYear()).slice(-2);
+            const dataFormatada = `${diaSemana}, ${dia} de ${mes} de ${ano}`;
             
-            // Criar elemento temporário para o PDF
+            // Calcular horários
+            let [horas, minutos] = horaInicio.split(':').map(Number);
+            let duracaoTotal = 0;
+            
+            const linhasHTML = liturgiaItens.map((item, index) => {
+                const horaAtual = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+                
+                minutos += item.duracao;
+                while (minutos >= 60) {
+                    minutos -= 60;
+                    horas++;
+                }
+                duracaoTotal += item.duracao;
+                
+                const bgColor = index % 2 === 0 ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)';
+                
+                return `
+                    <tr style="background: ${bgColor};">
+                        <td style="padding: 8px 10px; color: #4ecdc4; font-weight: bold; font-size: 0.85rem;">${horaAtual}</td>
+                        <td style="padding: 8px 10px; color: #fff; font-size: 0.85rem;">${item.atividade || '-'}</td>
+                        <td style="padding: 8px 10px; color: #a0a0a0; font-size: 0.85rem;">${item.responsavel || '-'}</td>
+                        <td style="padding: 8px 10px; color: #ffd700; text-align: center; font-weight: bold; font-size: 0.85rem;">${item.duracao} min</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            const horaTermino = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+            
+            // Criar elemento temporário para o PDF com visual completo
             const pdfContent = document.createElement('div');
             pdfContent.innerHTML = `
-                <div style="font-family: Arial, sans-serif; padding: 20px;">
-                    <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 20px; min-height: 100%; color: #fff;">
+                    
+                    <!-- Header -->
+                    <div style="text-align: center; margin-bottom: 15px;">
                         <img src="https://raw.githubusercontent.com/vanjivaldos-cmyk/games-idac/main/images/LogoGame.png" 
-                             style="width: 70px; height: auto; margin-bottom: 10px;" 
-                             onerror="this.style.display='none'">
-                        <h1 style="color: #1a1a2e; margin: 5px 0; font-size: 1.5rem;">📋 Liturgia IDAC</h1>
-                        <h2 style="color: #666; margin: 5px 0; font-size: 1rem; font-weight: normal;">Igreja de Deus Águas Claras</h2>
-                        <div style="background: #f5f5f5; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                            <strong style="font-size: 1.1rem;">${dataFormatada} - ${tipo}</strong>
+                             style="width: 60px; height: auto; margin-bottom: 8px; filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.4));"
+                             crossorigin="anonymous">
+                        <h1 style="font-size: 1.4rem; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); margin: 5px 0;">📋 Liturgia IDAC</h1>
+                        <h2 style="font-size: 0.85rem; color: #a0a0a0; font-weight: normal; margin: 0;">Igreja de Deus Águas Claras</h2>
+                    </div>
+                    
+                    <!-- Info do Culto (simplificado) -->
+                    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <div style="text-align: center;">
+                            <div style="color: #a0a0a0; font-size: 0.7rem;">📅 Data</div>
+                            <div style="color: #fff; font-size: 0.9rem; font-weight: bold;">${dataFormatada}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #a0a0a0; font-size: 0.7rem;">⛪ Culto</div>
+                            <div style="color: #fff; font-size: 0.9rem; font-weight: bold;">${tipo}</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #a0a0a0; font-size: 0.7rem;">⏰ Início</div>
+                            <div style="color: #fff; font-size: 0.9rem; font-weight: bold;">${horaInicio}</div>
                         </div>
                     </div>
                     
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                    <!-- Tabela de Liturgia -->
+                    <table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;">
                         <thead>
-                            <tr style="background: #1a1a2e; color: white;">
-                                <th style="padding: 10px; text-align: left; border: 1px solid #ccc;">Hora</th>
-                                <th style="padding: 10px; text-align: left; border: 1px solid #ccc;">Atividade</th>
-                                <th style="padding: 10px; text-align: left; border: 1px solid #ccc;">Responsável</th>
-                                <th style="padding: 10px; text-align: center; border: 1px solid #ccc;">Duração</th>
+                            <tr style="background: rgba(255,215,0,0.2);">
+                                <th style="padding: 10px 10px; text-align: left; color: #ffd700; font-size: 0.8rem;">Hora</th>
+                                <th style="padding: 10px 10px; text-align: left; color: #ffd700; font-size: 0.8rem;">Atividade</th>
+                                <th style="padding: 10px 10px; text-align: left; color: #ffd700; font-size: 0.8rem;">Responsável</th>
+                                <th style="padding: 10px 10px; text-align: center; color: #ffd700; font-size: 0.8rem;">Duração</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${gerarLinhasPDF()}
+                            ${linhasHTML}
                         </tbody>
                     </table>
                     
-                    <div style="margin-top: 20px; display: flex; justify-content: space-around; background: #f5f5f5; padding: 15px; border-radius: 5px;">
+                    <!-- Resumo -->
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; margin-top: 15px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
                         <div style="text-align: center;">
-                            <div style="color: #666; font-size: 0.8rem;">Início</div>
-                            <div style="color: #1a1a2e; font-size: 1.2rem; font-weight: bold;">${document.getElementById('resumoInicio').textContent}</div>
+                            <div style="color: #a0a0a0; font-size: 0.7rem;">Início</div>
+                            <div style="color: #ffd700; font-size: 1.1rem; font-weight: bold;">${horaInicio}</div>
                         </div>
                         <div style="text-align: center;">
-                            <div style="color: #666; font-size: 0.8rem;">Término</div>
-                            <div style="color: #1a1a2e; font-size: 1.2rem; font-weight: bold;">${document.getElementById('resumoTermino').textContent}</div>
+                            <div style="color: #a0a0a0; font-size: 0.7rem;">Término</div>
+                            <div style="color: #ffd700; font-size: 1.1rem; font-weight: bold;">${horaTermino}</div>
                         </div>
                         <div style="text-align: center;">
-                            <div style="color: #666; font-size: 0.8rem;">Duração Total</div>
-                            <div style="color: #1a1a2e; font-size: 1.2rem; font-weight: bold;">${document.getElementById('resumoDuracao').textContent}</div>
+                            <div style="color: #a0a0a0; font-size: 0.7rem;">Duração</div>
+                            <div style="color: #ffd700; font-size: 1.1rem; font-weight: bold;">${duracaoTotal} min</div>
                         </div>
+                        <div style="text-align: center;">
+                            <div style="color: #a0a0a0; font-size: 0.7rem;">Itens</div>
+                            <div style="color: #ffd700; font-size: 1.1rem; font-weight: bold;">${liturgiaItens.length}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rodapé -->
+                    <div style="text-align: center; margin-top: 15px; color: #555; font-size: 0.65rem;">
+                        Gerado em ${new Date().toLocaleString('pt-BR')} | IDAC
                     </div>
                 </div>
             `;
             
             // Configurações do PDF
             const opt = {
-                margin: 10,
+                margin: [10, 10, 10, 10],
                 filename: `Liturgia_IDAC_${data}_${tipo.replace(/\s/g, '_')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#1a1a2e'
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
             
             showToast('Gerando PDF...');
             
             html2pdf().set(opt).from(pdfContent).save().then(() => {
                 showToast('PDF gerado com sucesso!');
+            }).catch(err => {
+                showToast('Erro ao gerar PDF: ' + err.message, true);
+                console.error(err);
             });
         }
 
         function gerarLinhasPDF() {
-            const horaInicio = document.getElementById('horaInicio').value;
-            let [horas, minutos] = horaInicio.split(':').map(Number);
-            
-            return liturgiaItens.map((item, index) => {
-                const horaAtual = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
-                
-                // Calcular próximo horário
-                minutos += item.duracao;
-                while (minutos >= 60) {
-                    minutos -= 60;
-                    horas++;
-                }
-                
-                const bgColor = index % 2 === 0 ? '#ffffff' : '#f9f9f9';
-                
-                return `
-                    <tr style="background: ${bgColor};">
-                        <td style="padding: 8px; border: 1px solid #ccc; font-weight: bold; color: #1a1a2e;">${horaAtual}</td>
-                        <td style="padding: 8px; border: 1px solid #ccc;">${item.atividade}</td>
-                        <td style="padding: 8px; border: 1px solid #ccc;">${item.responsavel}</td>
-                        <td style="padding: 8px; border: 1px solid #ccc; text-align: center;">${item.duracao} min</td>
-                    </tr>
-                `;
-            }).join('');
+            // Função não mais usada, mantida para compatibilidade
+            return '';
         }
 
         // Inicialização
@@ -772,12 +852,18 @@
         }
 
         function carregarTemplate() {
+            const tipo = document.getElementById('tipoCulto').value;
+            
             if (liturgiaItens.length > 0) {
-                if (!confirm('Isso vai substituir a liturgia atual. Continuar?')) return;
+                if (!confirm(`Isso vai substituir a liturgia atual por um template de "${tipo}". Continuar?`)) return;
             }
-            liturgiaItens = JSON.parse(JSON.stringify(templateDomingoNoite));
+            
+            // Buscar template do tipo de culto selecionado
+            const template = templates[tipo] || templates['Domingo Noite'];
+            liturgiaItens = JSON.parse(JSON.stringify(template));
+            liturgiaSalva = null; // Marcar como não salvo
             renderizarTabela();
-            showToast('Template carregado!');
+            showToast(`Template "${tipo}" carregado!`);
         }
 
         function limparLiturgia() {
