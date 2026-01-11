@@ -749,14 +749,14 @@
                         <button onclick="abrirModalMensagens()" style="background: #8b5cf6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">⚙️ Gerenciar</button>
                     </div>
                 </div>
-                <textarea id="mensagemTemplate">Paz do Senhor, {nome}! 🙏
+                <textarea id="mensagemTemplate">Paz do Senhor, {nome}! [EMOJI_MAOS]
 
 Você está escalado(a) para o culto de *{tipoCulto}* no dia *{data}*:
 
-📋 *{atividade}*
-⏰ Horário previsto: *{horario}*
+[EMOJI_LISTA] *{atividade}*
+[EMOJI_RELOGIO] Horário previsto: *{horario}*
 
-Contamos com você! Deus abençoe! 🙌
+Contamos com você! Deus abençoe! [EMOJI_MAOS_CIMA]
 
 *Bispo Vanjivaldo e Pra Kélia*
 _Igreja de Deus Águas Claras - IDAC_</textarea>
@@ -1626,6 +1626,32 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
         // SISTEMA DE NOTIFICAÇÕES WHATSAPP
         // ========================================
         
+        // Cadastro de contatos padrão (nome -> telefone)
+        const contatosPadrao = {
+            'Bp. Vanjivaldo': '61984945302',
+            'Diác. Bruno': '61982593963',
+            'Diác. Eli Regina': '61998786419',
+            'Diác. Eunice': '61996636388',
+            'Diác. Flávio': '61982603507',
+            'Diác. Junio': '61983395790',
+            'Diác. Kêmille': '61981770117',
+            'Diác. Marcos': '61981547869',
+            'Diác. Myriam': '61981234192',
+            'Diác. Selene': '61996757007',
+            'Ev. Silvana': '61981722189',
+            'Pb. José': '62981393566',
+            'Pr. Domício': '61982128102',
+            'Pr. José Lourenço': '61983351186',
+            'Pr. Tadeu': '61995103759',
+            'Pra. Domingas': '61983838084',
+            'Pra. Jaqueline': '61996618562',
+            'Pra. Kélia': '61985141597',
+            'Pra. Leonilda': '62985898548',
+            'Pra. Maria Pereira': '61999938730',
+            'Pra. Miguelina': '61982130960',
+            'Pra. Nelcy': '61991150398'
+        };
+        
         // Cadastro de contatos (nome -> telefone)
         let contatosResponsaveis = {};
         let ministrantesCache = []; // Cache do Planejamento de Ministrações
@@ -1633,19 +1659,32 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
         
         // Referência Firebase para contatos
         const contatosRef = database.ref('contatos_responsaveis');
-        const ministrantesRef = database.ref('escala_ministracoes/ministrantes');
+        const ministrantesRef = database.ref('escala/pessoas');
         
         // Carregar contatos do Firebase ao iniciar
         function carregarContatos() {
             // Primeiro carrega os contatos salvos
             contatosRef.once('value').then(snapshot => {
-                contatosResponsaveis = snapshot.val() || {};
+                const contatosSalvos = snapshot.val() || {};
+                
+                // Mesclar contatos padrão com salvos (salvos têm prioridade)
+                contatosResponsaveis = { ...contatosPadrao, ...contatosSalvos };
+                
                 console.log('Contatos carregados:', Object.keys(contatosResponsaveis).length);
+                
+                // Se não tinha nada salvo, salvar os padrão
+                if (Object.keys(contatosSalvos).length === 0) {
+                    contatosRef.set(contatosPadrao).then(() => {
+                        console.log('Contatos padrão salvos no Firebase');
+                    });
+                }
                 
                 // Depois carrega os ministrantes
                 carregarMinistrantes();
             }).catch(err => {
                 console.log('Erro ao carregar contatos:', err);
+                // Usar contatos padrão em caso de erro
+                contatosResponsaveis = { ...contatosPadrao };
                 carregarMinistrantes();
             });
         }
@@ -1943,20 +1982,40 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
                 month: 'long'
             });
             
-            // Extrair primeiro nome
-            const primeiroNome = normalizarNome(nomeResponsavel).split(' ')[0];
-            const primeiroNomeFormatado = primeiroNome.charAt(0) + primeiroNome.slice(1).toLowerCase();
+            // Extrair título e primeiro nome
+            // Ex: "Pra. Jaqueline" -> "Pra. Jaqueline"
+            // Ex: "Diác. Bruno" -> "Diác. Bruno"
+            let nomeComTitulo = nomeResponsavel;
+            
+            // Se o nome completo tem mais de 2 partes (título + nome + sobrenome), pegar só título + primeiro nome
+            const partes = nomeResponsavel.split(' ');
+            if (partes.length > 2) {
+                // Verificar se primeira parte é título
+                const titulos = ['Bp.', 'Pr.', 'Pra.', 'Pb.', 'Ev.', 'Diác.', 'Diac.', 'Min.', 'Prof.'];
+                if (titulos.some(t => partes[0].toLowerCase() === t.toLowerCase())) {
+                    nomeComTitulo = `${partes[0]} ${partes[1]}`;
+                } else {
+                    nomeComTitulo = partes[0]; // Só primeiro nome
+                }
+            }
             
             // Formatar atividades
             const atividadesFormatadas = atividades.map((a, i) => `• ${horarios[i]} - ${a}`).join('\n');
             
             // Substituir variáveis
             let mensagem = template
-                .replace(/{nome}/g, primeiroNomeFormatado)
+                .replace(/{nome}/g, nomeComTitulo)
                 .replace(/{tipoCulto}/g, tipo)
                 .replace(/{data}/g, dataFormatada)
                 .replace(/{atividade}/g, atividadesFormatadas)
                 .replace(/{horario}/g, horarios[0] || horaInicio);
+            
+            // Substituir placeholders por emojis Unicode
+            mensagem = mensagem
+                .replace(/\[EMOJI_MAOS\]/g, '\u{1F64F}')
+                .replace(/\[EMOJI_LISTA\]/g, '\u{1F4CB}')
+                .replace(/\[EMOJI_RELOGIO\]/g, '\u23F0')
+                .replace(/\[EMOJI_MAOS_CIMA\]/g, '\u{1F64C}');
             
             return mensagem;
         }
@@ -2233,18 +2292,44 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
             } else {
                 delete contatosResponsaveis[nome];
             }
+            
+            // Auto-salvar após 2 segundos de inatividade
+            clearTimeout(window.autoSaveTimeout);
+            window.autoSaveTimeout = setTimeout(() => {
+                if (Object.keys(contatosResponsaveis).length > 0) {
+                    contatosRef.set(contatosResponsaveis)
+                        .then(() => {
+                            console.log('Auto-save: contatos salvos');
+                            showToast('Contato salvo automaticamente!');
+                        })
+                        .catch(err => console.error('Auto-save erro:', err));
+                }
+            }, 2000);
         }
         
         // Salvar contatos no Firebase (cadastro único - sincroniza com ministrantes)
         function salvarContatos() {
+            // Verificar se há contatos para salvar
+            const totalContatos = Object.keys(contatosResponsaveis).length;
+            console.log('Salvando contatos:', totalContatos, contatosResponsaveis);
+            
+            if (totalContatos === 0) {
+                showToast('Nenhum contato com telefone para salvar!', true);
+                return;
+            }
+            
+            showToast('Salvando contatos...');
+            
             // Salvar em contatos_responsaveis
             contatosRef.set(contatosResponsaveis)
                 .then(() => {
-                    // Também atualizar ministrantes no escala_ministracoes
+                    console.log('Contatos salvos com sucesso no Firebase!');
+                    // Também atualizar ministrantes no escala
                     sincronizarMinistrantes();
-                    showToast('Contatos salvos com sucesso!');
+                    showToast(`${totalContatos} contato(s) salvo(s) com sucesso!`);
                 })
                 .catch(err => {
+                    console.error('Erro ao salvar contatos:', err);
                     showToast('Erro ao salvar contatos: ' + err.message, true);
                 });
         }
@@ -2360,15 +2445,15 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
         // Modelos de mensagem (padrão + personalizados)
         let modelosMensagem = {
             'padrao': {
-                nome: '📋 Escalação Padrão',
-                texto: `Paz do Senhor, {nome}! 🙏
+                nome: 'Escalação Padrão',
+                texto: `Paz do Senhor, {nome}! [EMOJI_MAOS]
 
 Você está escalado(a) para o culto de *{tipoCulto}* no dia *{data}*:
 
-📋 *{atividade}*
-⏰ Horário previsto: *{horario}*
+[EMOJI_LISTA] *{atividade}*
+[EMOJI_RELOGIO] Horário previsto: *{horario}*
 
-Contamos com você! Deus abençoe! 🙌
+Contamos com você! Deus abençoe! [EMOJI_MAOS_CIMA]
 
 *Bispo Vanjivaldo e Pra Kélia*
 _Igreja de Deus Águas Claras - IDAC_`
