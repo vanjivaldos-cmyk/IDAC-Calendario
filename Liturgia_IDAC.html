@@ -1583,19 +1583,155 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
         
         // Cadastro de contatos (nome -> telefone)
         let contatosResponsaveis = {};
+        let aniversariantesCache = []; // Cache dos aniversariantes
+        let ministrantesCache = []; // Cache do Planejamento de Ministrações
         let notificadosHoje = {}; // Controle de quem já foi notificado
         
         // Referência Firebase para contatos
         const contatosRef = database.ref('contatos_responsaveis');
+        const ministrantesRef = database.ref('escala_ministracoes/ministrantes');
         
-        // Carregar contatos do Firebase ao iniciar
+        // Carregar contatos do Firebase e aniversariantes ao iniciar
         function carregarContatos() {
+            // Primeiro carrega os contatos salvos
             contatosRef.once('value').then(snapshot => {
                 contatosResponsaveis = snapshot.val() || {};
                 console.log('Contatos carregados:', Object.keys(contatosResponsaveis).length);
+                
+                // Depois carrega os aniversariantes e ministrantes
+                carregarFontesDeContatos();
             }).catch(err => {
                 console.log('Erro ao carregar contatos:', err);
+                carregarFontesDeContatos();
             });
+        }
+        
+        // Carregar aniversariantes e ministrantes
+        function carregarFontesDeContatos() {
+            // Carregar aniversariantes
+            aniversariantesRef.once('value').then(snapshot => {
+                aniversariantesCache = snapshot.val() || [];
+                console.log('Aniversariantes carregados:', aniversariantesCache.length);
+                
+                // Mesclar telefones
+                mesclarTelefonesAniversariantes();
+            }).catch(err => {
+                console.log('Erro ao carregar aniversariantes:', err);
+            });
+            
+            // Carregar ministrantes (Planejamento de Ministrações - para Pr. Tadeu, Pra. Nelcy, etc)
+            ministrantesRef.once('value').then(snapshot => {
+                ministrantesCache = snapshot.val() || [];
+                console.log('Ministrantes carregados:', ministrantesCache.length);
+                
+                // Mesclar telefones dos ministrantes
+                mesclarTelefonesMinistrantes();
+            }).catch(err => {
+                console.log('Erro ao carregar ministrantes:', err);
+            });
+        }
+        
+        // Mesclar telefones dos aniversariantes com contatos existentes
+        function mesclarTelefonesAniversariantes() {
+            if (!aniversariantesCache || aniversariantesCache.length === 0) return;
+            
+            let novosContatos = 0;
+            
+            // Para cada responsável da lista, tentar encontrar telefone nos aniversariantes
+            responsaveis.forEach(nomeResponsavel => {
+                if (!nomeResponsavel || nomeResponsavel.startsWith('---') || nomeResponsavel === 'Outro...' || nomeResponsavel === '') return;
+                
+                // Se já tem telefone cadastrado, pular
+                if (contatosResponsaveis[nomeResponsavel]) return;
+                
+                // Buscar nos aniversariantes
+                const telefone = buscarTelefoneAniversariante(nomeResponsavel);
+                if (telefone) {
+                    contatosResponsaveis[nomeResponsavel] = telefone;
+                    novosContatos++;
+                }
+            });
+            
+            if (novosContatos > 0) {
+                console.log(`${novosContatos} telefones encontrados nos aniversariantes`);
+            }
+        }
+        
+        // Mesclar telefones dos ministrantes
+        function mesclarTelefonesMinistrantes() {
+            if (!ministrantesCache || ministrantesCache.length === 0) return;
+            
+            let novosContatos = 0;
+            
+            // Para cada responsável da lista, tentar encontrar telefone nos ministrantes
+            responsaveis.forEach(nomeResponsavel => {
+                if (!nomeResponsavel || nomeResponsavel.startsWith('---') || nomeResponsavel === 'Outro...' || nomeResponsavel === '') return;
+                
+                // Se já tem telefone cadastrado, pular
+                if (contatosResponsaveis[nomeResponsavel]) return;
+                
+                // Buscar nos ministrantes
+                const telefone = buscarTelefoneMinistrante(nomeResponsavel);
+                if (telefone) {
+                    contatosResponsaveis[nomeResponsavel] = telefone;
+                    novosContatos++;
+                }
+            });
+            
+            if (novosContatos > 0) {
+                console.log(`${novosContatos} telefones encontrados nos ministrantes`);
+            }
+        }
+        
+        // Extrair primeiro nome (sem prefixos)
+        function extrairPrimeiroNome(nome) {
+            if (!nome) return '';
+            // Remove prefixos comuns
+            const semPrefixo = nome
+                .replace(/^(Bp\.|Pr\.|Pra\.|Pb\.|Ev\.|Diác\.|Diac\.|Min\.|Mídia|Prof\.)\s*/i, '')
+                .trim();
+            // Pega só o primeiro nome
+            return semPrefixo.split(' ')[0].toUpperCase();
+        }
+        
+        // Buscar telefone específico nos aniversariantes (por PRIMEIRO NOME)
+        function buscarTelefoneAniversariante(nomeResponsavel) {
+            if (!aniversariantesCache || aniversariantesCache.length === 0) return null;
+            
+            const primeiroNome = extrairPrimeiroNome(nomeResponsavel);
+            if (!primeiroNome) return null;
+            
+            // Busca pelo primeiro nome
+            const aniversariante = aniversariantesCache.find(a => {
+                if (!a || !a.nome) return false;
+                const primeiroNomeAniv = a.nome.toUpperCase().trim().split(' ')[0];
+                return primeiroNomeAniv === primeiroNome;
+            });
+            
+            return aniversariante?.telefone || null;
+        }
+        
+        // Buscar telefone específico nos ministrantes (Planejamento de Ministrações)
+        function buscarTelefoneMinistrante(nomeResponsavel) {
+            if (!ministrantesCache || ministrantesCache.length === 0) return null;
+            
+            const primeiroNome = extrairPrimeiroNome(nomeResponsavel);
+            if (!primeiroNome) return null;
+            
+            // Busca pelo primeiro nome ou nome completo
+            const ministrante = ministrantesCache.find(m => {
+                if (!m || !m.nome) return false;
+                const nomeMinistrante = m.nome.toUpperCase().trim();
+                const primeiroNomeMin = extrairPrimeiroNome(m.nome);
+                
+                // Busca exata pelo nome do ministrante
+                if (nomeMinistrante === nomeResponsavel.toUpperCase()) return true;
+                
+                // Busca pelo primeiro nome
+                return primeiroNomeMin === primeiroNome;
+            });
+            
+            return ministrante?.telefone || null;
         }
         
         // Carregar contatos ao iniciar
@@ -1661,12 +1797,28 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
                 return contatosResponsaveis[nomeResponsavel];
             }
             
-            // Busca pelo nome normalizado
-            const nomeNorm = normalizarNome(nomeResponsavel);
+            // Busca pelo primeiro nome nos contatos
+            const primeiroNome = extrairPrimeiroNome(nomeResponsavel);
             for (const [nome, telefone] of Object.entries(contatosResponsaveis)) {
-                if (normalizarNome(nome) === nomeNorm) {
+                if (extrairPrimeiroNome(nome) === primeiroNome) {
                     return telefone;
                 }
+            }
+            
+            // Se não encontrou nos contatos, buscar nos aniversariantes
+            const telefoneAniv = buscarTelefoneAniversariante(nomeResponsavel);
+            if (telefoneAniv) {
+                // Salvar no cache local para próximas buscas
+                contatosResponsaveis[nomeResponsavel] = telefoneAniv;
+                return telefoneAniv;
+            }
+            
+            // Se não encontrou nos aniversariantes, buscar nos ministrantes
+            const telefoneMin = buscarTelefoneMinistrante(nomeResponsavel);
+            if (telefoneMin) {
+                // Salvar no cache local para próximas buscas
+                contatosResponsaveis[nomeResponsavel] = telefoneMin;
+                return telefoneMin;
             }
             
             return null;
