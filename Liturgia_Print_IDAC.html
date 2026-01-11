@@ -6,7 +6,6 @@
     <title>Imprimir Liturgia - IDAC</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -296,21 +295,6 @@
         const hoje = new Date().toISOString().split('T')[0];
         dataCultoEl.value = hoje;
 
-        // Função para voltar
-        function voltarPagina() {
-            // Tenta fechar a aba (funciona se foi aberta por script)
-            if (window.opener) {
-                window.close();
-            } else {
-                // Se não conseguir fechar, volta no histórico ou vai para a página principal
-                if (window.history.length > 1) {
-                    window.history.back();
-                } else {
-                    window.location.href = 'Liturgia_IDAC.html';
-                }
-            }
-        }
-
         // Abreviações dos tipos de culto
         const tipoAbreviado = {
             'Domingo Manhã': 'Man',
@@ -320,49 +304,56 @@
             'Culto Especial': 'Esp'
         };
 
-        // Função para gerar PDF com nome automático
-        function gerarPDF() {
+        // Função para atualizar título da página (sugere nome do PDF)
+        function atualizarTitulo() {
             const data = dataCultoEl.value;
             const tipo = tipoCultoEl.value;
             
-            if (!data) {
-                alert('Selecione uma data!');
-                return;
+            if (data) {
+                const dataObj = new Date(data + 'T12:00:00');
+                const dia = String(dataObj.getDate()).padStart(2, '0');
+                const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
+                const ano = String(dataObj.getFullYear()).slice(-2);
+                const dataFormatada = `${dia}${mes}${ano}`;
+                const tipoAbrev = tipoAbreviado[tipo] || tipo.substring(0, 3);
+                
+                // Atualiza o título da página - navegador usa como sugestão de nome do PDF
+                document.title = `Liturgia_IDAC_${dataFormatada}_${tipoAbrev}`;
             }
-            
-            // Formatar data: 110126 (ddmmaa)
-            const dataObj = new Date(data + 'T12:00:00');
-            const dia = String(dataObj.getDate()).padStart(2, '0');
-            const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
-            const ano = String(dataObj.getFullYear()).slice(-2);
-            const dataFormatada = `${dia}${mes}${ano}`;
-            
-            // Abreviação do tipo
-            const tipoAbrev = tipoAbreviado[tipo] || tipo.substring(0, 3);
-            
-            // Nome do arquivo: Liturgia_IDAC_110126_Noi.pdf
-            const nomeArquivo = `Liturgia_IDAC_${dataFormatada}_${tipoAbrev}.pdf`;
-            
-            const opt = {
-                margin: 10,
-                filename: nomeArquivo,
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { 
-                    scale: 2,
-                    backgroundColor: '#1a1a2e'
-                },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            
-            html2pdf().set(opt).from(printContentEl).save();
+        }
+
+        // Função para imprimir/salvar PDF
+        function gerarPDF() {
+            atualizarTitulo();
+            window.print();
+        }
+
+        // Função para voltar
+        function voltarPagina() {
+            if (window.opener) {
+                window.close();
+            } else {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = 'Liturgia_IDAC.html';
+                }
+            }
         }
 
         // Eventos
-        dataCultoEl.addEventListener('change', carregarLiturgia);
-        tipoCultoEl.addEventListener('change', carregarLiturgia);
+        dataCultoEl.addEventListener('change', () => {
+            carregarLiturgia();
+            atualizarTitulo();
+        });
+        tipoCultoEl.addEventListener('change', () => {
+            carregarLiturgia();
+            atualizarTitulo();
+        });
 
         // Carregar ao iniciar
         carregarLiturgia();
+        atualizarTitulo();
 
         function carregarLiturgia() {
             const data = dataCultoEl.value;
