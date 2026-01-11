@@ -122,6 +122,11 @@
             min-width: 20px;
             text-align: center;
         }
+        
+        /* Feriados inline - só aparece na impressão */
+        .feriados-inline {
+            display: none;
+        }
         .weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -540,7 +545,7 @@
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 10mm;
+                margin: 5mm;
             }
             
             body {
@@ -552,18 +557,20 @@
             }
             
             .header {
-                margin-bottom: 10px !important;
+                margin-bottom: 5px !important;
+                padding: 0 !important;
             }
             
             .header h1 {
                 color: #1a1a2e !important;
                 text-shadow: none !important;
-                font-size: 1.5rem !important;
+                font-size: 1.2rem !important;
+                margin-bottom: 2px !important;
             }
             
             .header h2 {
                 color: #666 !important;
-                font-size: 0.9rem !important;
+                font-size: 0.7rem !important;
             }
             
             /* Esconder elementos não necessários na impressão */
@@ -575,36 +582,51 @@
             .calendar-container {
                 display: grid !important;
                 grid-template-columns: repeat(3, 1fr) !important;
-                gap: 8px !important;
+                gap: 4px !important;
                 max-width: 100% !important;
             }
             
             .month-card {
                 background: white !important;
-                border: 1px solid #ccc !important;
-                border-radius: 5px !important;
-                padding: 8px !important;
+                border: 1px solid #999 !important;
+                border-radius: 3px !important;
+                padding: 4px !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
             
             .month-header {
                 color: #1a1a2e !important;
-                font-size: 0.9rem !important;
-                border-bottom: 1px solid #ccc !important;
-                padding-bottom: 5px !important;
-                margin-bottom: 5px !important;
+                font-size: 0.75rem !important;
+                font-weight: bold !important;
+                border-bottom: 1px solid #999 !important;
+                padding-bottom: 2px !important;
+                margin-bottom: 2px !important;
             }
             
             .weekdays {
-                font-size: 0.6rem !important;
+                font-size: 0.5rem !important;
                 color: #666 !important;
             }
             
+            .weekdays span {
+                padding: 1px 0 !important;
+            }
+            
+            .days {
+                gap: 1px !important;
+            }
+            
             .day {
-                font-size: 0.65rem !important;
-                min-height: 25px !important;
-                border: 1px solid #eee !important;
+                font-size: 0.55rem !important;
+                min-height: 16px !important;
+                aspect-ratio: auto !important;
+                padding: 1px !important;
+                border: 1px solid #ddd !important;
+            }
+            
+            .day .day-number {
+                font-size: 0.55rem !important;
             }
             
             .day.sunday {
@@ -612,13 +634,17 @@
             }
             
             .day.has-event {
-                background: #fff3cd !important;
-                border-color: #ffc107 !important;
+                background: #fff8dc !important;
+                border-color: #daa520 !important;
             }
             
             .event-dot {
-                width: 4px !important;
-                height: 4px !important;
+                width: 3px !important;
+                height: 3px !important;
+            }
+            
+            .event-dots {
+                gap: 1px !important;
             }
             
             .event-dot.lideranca { background: #ff6b6b !important; }
@@ -636,21 +662,26 @@
             .event-dot.teens { background: #f59e0b !important; }
             
             .month-footer {
-                margin-top: 5px !important;
-                padding-top: 5px !important;
-                font-size: 0.55rem !important;
-                border-top: 1px solid #ccc !important;
+                display: none !important;
             }
             
-            .month-footer .feriado-item {
-                margin-bottom: 1px !important;
+            /* Feriados inline nos espaços vazios */
+            .month-card .feriados-inline {
+                display: block !important;
+                font-size: 0.45rem !important;
+                color: #666 !important;
+                margin-top: 2px !important;
+                line-height: 1.2 !important;
             }
             
-            .month-footer .feriado-dia {
-                background: #dc2626 !important;
-                color: white !important;
-                padding: 0 3px !important;
-                font-size: 0.5rem !important;
+            .feriados-inline .feriado-tag {
+                display: inline-block !important;
+                background: #fee2e2 !important;
+                color: #dc2626 !important;
+                padding: 0 2px !important;
+                border-radius: 2px !important;
+                margin: 1px !important;
+                font-weight: bold !important;
             }
         }
         
@@ -745,8 +776,8 @@
 
     <div class="sync-status" id="syncStatus">🔄 Conectando...</div>
 
-    <div class="instructions">
-        <strong>💡 Dica:</strong> Clique em qualquer dia para adicionar ou editar eventos. Os dados são salvos na nuvem automaticamente!
+    <div class="instructions" id="instructions">
+        <strong>💡 Dica:</strong> Clique em qualquer dia para visualizar os eventos detalhados.
     </div>
 
     <div class="toolbar">
@@ -1009,6 +1040,7 @@
                 document.getElementById('adminBtn').innerHTML = '🔓 Admin (Logado)';
                 document.getElementById('adminBtn').style.background = '#22c55e';
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+                document.getElementById('instructions').innerHTML = '<strong>💡 Admin:</strong> Clique em qualquer dia para adicionar ou editar eventos. Os dados são salvos na nuvem automaticamente!';
                 showToast('Acesso de administrador liberado!');
                 updateEventsTable();
             } else if (senha !== null) {
@@ -1022,6 +1054,7 @@
                 document.getElementById('adminBtn').innerHTML = '🔐 Admin';
                 document.getElementById('adminBtn').style.background = '#6b7280';
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+                document.getElementById('instructions').innerHTML = '<strong>💡 Dica:</strong> Clique em qualquer dia para visualizar os eventos detalhados.';
                 showToast('Você saiu do modo administrador');
                 updateEventsTable();
             } else {
@@ -1374,9 +1407,20 @@
                         // Verificar se tem feriado neste dia
                         dayEvents.forEach(event => {
                             if (event.type === 'feriado') {
+                                // Abreviar nome do feriado
+                                let nomeAbrev = event.title
+                                    .replace('Confraternização Universal (Ano Novo)', 'Ano Novo')
+                                    .replace('Paixão de Cristo (Sexta-feira Santa)', 'Sexta Santa')
+                                    .replace('Nossa Senhora Aparecida', 'N.S. Aparecida')
+                                    .replace('Proclamação da República', 'Proc. República')
+                                    .replace('Dia da Consciência Negra', 'Consc. Negra')
+                                    .replace('Quarta-feira de Cinzas', 'Cinzas')
+                                    .replace('Corpus Christi', 'Corpus Christi')
+                                    .replace('Dia do Trabalho', 'Trabalho')
+                                    .replace('Independência do Brasil', 'Independência');
                                 feriadosDoMes.push({
                                     dia: day,
-                                    nome: event.title.replace(' (Sexta-feira Santa)', '').replace('Confraternização Universal ', '').replace('Dia da ', '').replace('Dia do ', '').replace('Proclamação da ', '')
+                                    nome: nomeAbrev
                                 });
                             }
                         });
@@ -1387,7 +1431,7 @@
                 
                 monthCard.appendChild(daysDiv);
                 
-                // Adicionar rodapé com feriados se houver
+                // Adicionar rodapé com feriados (para visualização na tela)
                 if (feriadosDoMes.length > 0) {
                     const monthFooter = document.createElement('div');
                     monthFooter.className = 'month-footer';
@@ -1395,6 +1439,14 @@
                         `<div class="feriado-item"><span class="feriado-dia">${f.dia}</span> ${f.nome}</div>`
                     ).join('');
                     monthCard.appendChild(monthFooter);
+                    
+                    // Adicionar versão inline para impressão (mais compacta)
+                    const feriadosInline = document.createElement('div');
+                    feriadosInline.className = 'feriados-inline';
+                    feriadosInline.innerHTML = feriadosDoMes.map(f => 
+                        `<span class="feriado-tag">${f.dia} ${f.nome}</span>`
+                    ).join(' ');
+                    monthCard.appendChild(feriadosInline);
                 }
                 
                 container.appendChild(monthCard);
