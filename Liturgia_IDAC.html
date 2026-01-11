@@ -328,6 +328,7 @@
                         <option value="Domingo Manhã">Domingo Manhã</option>
                         <option value="Domingo Noite" selected>Domingo Noite</option>
                         <option value="Quarta-feira">Quarta-feira</option>
+                        <option value="Ceia do Senhor">Ceia do Senhor</option>
                         <option value="Culto Especial">Culto Especial</option>
                     </select>
                 </div>
@@ -424,21 +425,21 @@
             'Pb. José',
             '--- DIÁCONOS ---',
             'Diác. Bruno',
+            'Diác. Eli Regina',
+            'Diác. Eunice',
             'Diác. Flávio',
             'Diác. Junio',
+            'Diác. Kêmille',
             'Diác. Marcos',
-            'Diac. Eli Regina',
-            'Diac. Eunice',
-            'Diac. Kêmille',
-            'Diac. Myriam',
-            'Diac. Selene',
+            'Diác. Myriam',
+            'Diác. Selene',
             '--- MINISTÉRIOS ---',
-            'Louvor e Artes',
-            'MÍDIA',
+            'Mídia',
             'Min. Homens',
             'Min. Intercessão',
             'Min. KIDS',
             'Min. Louvor',
+            'Min. Louvor e Artes',
             'Min. Mulheres',
             'Min. Teens',
             '---',
@@ -448,9 +449,9 @@
         // Atividades padrão (templates por tipo de culto)
         const templates = {
             'Domingo Manhã': [
-                { atividade: 'Prelúdio Musical com Louvor Multimídia', responsavel: 'MÍDIA', duracao: 5 },
+                { atividade: 'Prelúdio Musical com Louvor Multimídia', responsavel: 'Mídia', duracao: 5 },
                 { atividade: 'Abertura com Saudação aos Presentes', responsavel: '', duracao: 5 },
-                { atividade: 'Louvor de Celebração', responsavel: 'Louvor e Artes', duracao: 15 },
+                { atividade: 'Louvor de Celebração', responsavel: 'Min. Louvor e Artes', duracao: 15 },
                 { atividade: 'Momento KIDS', responsavel: 'Min. KIDS', duracao: 5 },
                 { atividade: 'Ministração da Palavra', responsavel: '', duracao: 50 },
                 { atividade: 'Ofertório', responsavel: '', duracao: 10 },
@@ -458,7 +459,7 @@
                 { atividade: 'Término e Benção Apostólica', responsavel: 'Bp. Vanjivaldo', duracao: 5 }
             ],
             'Domingo Noite': [
-                { atividade: 'Prelúdio Musical com Louvor Multimídia', responsavel: 'MÍDIA', duracao: 5 },
+                { atividade: 'Prelúdio Musical com Louvor Multimídia', responsavel: 'Mídia', duracao: 5 },
                 { atividade: 'Abertura com Saudação aos Presentes', responsavel: 'Pra. Jaqueline', duracao: 2 },
                 { atividade: 'Louvor de Celebração', responsavel: 'Min. Louvor', duracao: 20 },
                 { atividade: 'Oração pelos enfermos', responsavel: 'Ev. Silvana', duracao: 5 },
@@ -476,8 +477,17 @@
                 { atividade: 'Avisos', responsavel: '', duracao: 5 },
                 { atividade: 'Encerramento', responsavel: '', duracao: 5 }
             ],
+            'Ceia do Senhor': [
+                { atividade: 'Prelúdio Musical', responsavel: 'Mídia', duracao: 5 },
+                { atividade: 'Abertura', responsavel: '', duracao: 5 },
+                { atividade: 'Louvor e Adoração', responsavel: 'Min. Louvor', duracao: 20 },
+                { atividade: 'Ministração da Palavra', responsavel: 'Bp. Vanjivaldo', duracao: 30 },
+                { atividade: 'Celebração da Ceia', responsavel: 'Bp. Vanjivaldo', duracao: 20 },
+                { atividade: 'Ofertório', responsavel: '', duracao: 10 },
+                { atividade: 'Benção Apostólica', responsavel: 'Bp. Vanjivaldo', duracao: 5 }
+            ],
             'Culto Especial': [
-                { atividade: 'Prelúdio Musical', responsavel: 'MÍDIA', duracao: 10 },
+                { atividade: 'Prelúdio Musical', responsavel: 'Mídia', duracao: 10 },
                 { atividade: 'Abertura', responsavel: '', duracao: 5 },
                 { atividade: 'Louvor e Adoração', responsavel: 'Min. Louvor', duracao: 30 },
                 { atividade: 'Momento Especial', responsavel: '', duracao: 15 },
@@ -695,9 +705,24 @@
             }
         }
 
+        // Horários padrão por tipo de culto
+        const horariosPadrao = {
+            'Domingo Manhã': '09:30',
+            'Domingo Noite': '17:55',
+            'Quarta-feira': '20:00',
+            'Culto Especial': '20:00',
+            'Ceia do Senhor': '18:00'
+        };
+
         function updateCultoInfo() {
             const data = document.getElementById('dataCulto').value;
             const tipo = document.getElementById('tipoCulto').value;
+            
+            // Atualizar horário padrão baseado no tipo de culto (só se não tiver itens)
+            if (horariosPadrao[tipo] && liturgiaItens.length === 0) {
+                document.getElementById('horaInicio').value = horariosPadrao[tipo];
+            }
+            
             if (data) {
                 const dataFormatada = new Date(data + 'T12:00:00').toLocaleDateString('pt-BR', {
                     weekday: 'long',
