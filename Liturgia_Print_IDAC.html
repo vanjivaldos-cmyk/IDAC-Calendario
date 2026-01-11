@@ -6,6 +6,7 @@
     <title>Imprimir Liturgia - IDAC</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -56,6 +57,7 @@
         }
         
         .btn-print { background: #3b82f6; color: white; }
+        .btn-image { background: #10b981; color: white; }
         .btn-back { background: #6b7280; color: white; }
         
         .toolbar button:hover {
@@ -117,7 +119,7 @@
         .culto-info {
             display: flex;
             justify-content: center;
-            gap: 40px;
+            gap: 50px;
             margin-bottom: 20px;
             font-size: 1rem;
         }
@@ -283,7 +285,8 @@
                 <span id="nomeArquivoTexto">Liturgia_IDAC_...</span>
                 <small>📋 Clique para copiar</small>
             </div>
-            <button class="btn-print" onclick="gerarPDF()">🖨️ Salvar PDF</button>
+            <button class="btn-print" onclick="gerarPDF()">🖨️ PDF</button>
+            <button class="btn-image" onclick="gerarImagem()">🖼️ Imagem</button>
             <button class="btn-back" onclick="voltarPagina()">← Voltar</button>
         </div>
         
@@ -380,6 +383,26 @@
             
             // Abre a impressão
             window.print();
+        }
+
+        // Função para gerar imagem PNG
+        function gerarImagem() {
+            const nomeArquivo = gerarNomeArquivo();
+            
+            html2canvas(printContentEl, {
+                backgroundColor: '#1a1a2e',
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                // Criar link de download
+                const link = document.createElement('a');
+                link.download = nomeArquivo + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                alert('Erro ao gerar imagem: ' + err.message);
+            });
         }
 
         // Função para voltar
@@ -492,7 +515,6 @@
                 <div class="culto-info">
                     <span>📅 ${dataFormatada}</span>
                     <span>⛪ ${tipo}</span>
-                    <span>⏰ ${horaInicio}</span>
                 </div>
                 
                 <table class="liturgia-table">
