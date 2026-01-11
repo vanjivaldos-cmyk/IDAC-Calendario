@@ -343,7 +343,7 @@
             <button class="btn-template admin-only" onclick="carregarLiturgiaSalva()">📂 Carregar Salvo</button>
             <button class="btn-template admin-only" style="background: #6366f1;" onclick="carregarTemplate()">📝 Novo Template</button>
             <button class="btn-save admin-only" onclick="salvarLiturgia()">💾 Salvar</button>
-            <button class="btn-print" onclick="gerarPDF()">📄 Gerar PDF</button>
+            <button class="btn-print" onclick="abrirImpressao()">🖨️ Imprimir / PDF</button>
             <button class="btn-clear admin-only" onclick="limparLiturgia()">🗑️ Limpar</button>
             <button class="btn-admin" id="adminBtn" onclick="toggleAdmin()">🔐 Admin</button>
         </div>
@@ -405,25 +405,26 @@
         const SENHA_ADMIN = 'idac2026';
         let isAdmin = false;
 
-        // Lista de responsáveis (líderes da IDAC)
+        // Lista de responsáveis (líderes da IDAC) - em ordem alfabética por grupo
         let responsaveis = [
             '',
             '--- PASTORES ---',
             'Bp. Vanjivaldo',
-            'Pra. Kélia',
-            'Pra. Nelcy',
+            'Pr. Domício',
+            'Pr. Tadeu',
             'Pra. Jaqueline',
-            'Pra. Miguelina',
+            'Pra. Kélia',
             'Pra. Leonilda',
             'Pra. Maria Pereira',
-            'Pr. Tadeu',
-            'Pr. Domício',
-            '--- PRESBÍTERO ---',
-            'Pb. José',
+            'Pra. Miguelina',
+            'Pra. Nelcy',
             '--- EVANGELISTA ---',
             'Ev. Silvana',
+            '--- PRESBÍTERO ---',
+            'Pb. José',
             '--- DIÁCONOS ---',
             'Diác. Bruno',
+            'Diác. Flávio',
             'Diác. Junio',
             'Diác. Marcos',
             'Diac. Eli Regina',
@@ -432,14 +433,14 @@
             'Diac. Myriam',
             'Diac. Selene',
             '--- MINISTÉRIOS ---',
-            'Min. Louvor',
-            'Min. KIDS',
-            'Min. Teens',
-            'Min. Intercessão',
-            'Min. Mulheres',
-            'Min. Homens',
-            'MÍDIA',
             'Louvor e Artes',
+            'MÍDIA',
+            'Min. Homens',
+            'Min. Intercessão',
+            'Min. KIDS',
+            'Min. Louvor',
+            'Min. Mulheres',
+            'Min. Teens',
             '---',
             'Outro...'
         ];
@@ -526,103 +527,90 @@
                 }
                 duracaoTotal += item.duracao;
                 
-                const bgColor = index % 2 === 0 ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)';
+                const bgColor = index % 2 === 0 ? 'rgba(255,255,255,0.05)' : 'transparent';
                 
                 return `
                     <tr style="background: ${bgColor};">
-                        <td style="padding: 8px 10px; color: #4ecdc4; font-weight: bold; font-size: 0.9rem;">${horaAtual}</td>
-                        <td style="padding: 8px 10px; color: #fff; font-size: 0.9rem;">${item.atividade || '-'}</td>
-                        <td style="padding: 8px 10px; color: #a0a0a0; font-size: 0.9rem;">${item.responsavel || '-'}</td>
-                        <td style="padding: 8px 10px; color: #ffd700; text-align: center; font-weight: bold; font-size: 0.9rem;">${item.duracao} min</td>
+                        <td style="padding: 8px; color: #4ecdc4; font-weight: bold;">${horaAtual}</td>
+                        <td style="padding: 8px; color: #fff;">${item.atividade || '-'}</td>
+                        <td style="padding: 8px; color: #ccc;">${item.responsavel || '-'}</td>
+                        <td style="padding: 8px; color: #ffd700; text-align: center; font-weight: bold;">${item.duracao} min</td>
                     </tr>
                 `;
             }).join('');
             
             const horaTermino = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
             
-            // Criar elemento temporário para o PDF com visual otimizado para leitura
+            // Criar elemento temporário para o PDF
             const pdfContent = document.createElement('div');
+            pdfContent.style.width = '210mm';
+            pdfContent.style.padding = '15mm';
+            pdfContent.style.backgroundColor = '#1a1a2e';
+            pdfContent.style.fontFamily = 'Arial, sans-serif';
+            pdfContent.style.color = '#fff';
+            
             pdfContent.innerHTML = `
-                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 25px; color: #fff;">
-                    
-                    <!-- Header -->
-                    <div style="text-align: center; margin-bottom: 15px;">
-                        <img src="https://raw.githubusercontent.com/vanjivaldos-cmyk/games-idac/main/images/LogoGame.png" 
-                             style="width: 55px; height: auto; margin-bottom: 8px; filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.4));"
-                             crossorigin="anonymous">
-                        <h1 style="font-size: 1.4rem; color: #ffd700; margin: 5px 0;">📋 Liturgia IDAC</h1>
-                        <h2 style="font-size: 0.85rem; color: #a0a0a0; font-weight: normal; margin: 0;">Igreja de Deus Águas Claras</h2>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="https://raw.githubusercontent.com/vanjivaldos-cmyk/games-idac/main/images/LogoGame.png" 
+                         style="width: 50px; height: auto; margin-bottom: 10px;">
+                    <h1 style="font-size: 20px; color: #ffd700; margin: 5px 0;">📋 Liturgia IDAC</h1>
+                    <p style="font-size: 12px; color: #a0a0a0; margin: 0;">Igreja de Deus Águas Claras</p>
+                </div>
+                
+                <div style="text-align: center; margin-bottom: 20px; font-size: 14px;">
+                    <span style="margin-right: 30px;">📅 ${dataFormatada}</span>
+                    <span style="margin-right: 30px;">⛪ ${tipo}</span>
+                    <span>⏰ ${horaInicio}</span>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="background: rgba(255,215,0,0.3);">
+                            <th style="padding: 8px; text-align: left; color: #ffd700; border-bottom: 2px solid #ffd700;">Hora</th>
+                            <th style="padding: 8px; text-align: left; color: #ffd700; border-bottom: 2px solid #ffd700;">Atividade</th>
+                            <th style="padding: 8px; text-align: left; color: #ffd700; border-bottom: 2px solid #ffd700;">Responsável</th>
+                            <th style="padding: 8px; text-align: center; color: #ffd700; border-bottom: 2px solid #ffd700;">Duração</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${linhasHTML}
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; justify-content: space-around; text-align: center;">
+                    <div>
+                        <div style="font-size: 10px; color: #a0a0a0;">Início</div>
+                        <div style="font-size: 16px; color: #ffd700; font-weight: bold;">${horaInicio}</div>
                     </div>
-                    
-                    <!-- Info do Culto em linha -->
-                    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 15px;">
-                        <div style="text-align: center;">
-                            <span style="color: #fff; font-size: 0.95rem; font-weight: bold;">📅 ${dataFormatada}</span>
-                        </div>
-                        <div style="text-align: center;">
-                            <span style="color: #fff; font-size: 0.95rem; font-weight: bold;">⛪ ${tipo}</span>
-                        </div>
-                        <div style="text-align: center;">
-                            <span style="color: #fff; font-size: 0.95rem; font-weight: bold;">⏰ ${horaInicio}</span>
-                        </div>
+                    <div>
+                        <div style="font-size: 10px; color: #a0a0a0;">Término</div>
+                        <div style="font-size: 16px; color: #ffd700; font-weight: bold;">${horaTermino}</div>
                     </div>
-                    
-                    <!-- Tabela de Liturgia -->
-                    <table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden;">
-                        <thead>
-                            <tr style="background: rgba(255,215,0,0.2);">
-                                <th style="padding: 10px; text-align: left; color: #ffd700; font-size: 0.85rem; width: 60px;">Hora</th>
-                                <th style="padding: 10px; text-align: left; color: #ffd700; font-size: 0.85rem;">Atividade</th>
-                                <th style="padding: 10px; text-align: left; color: #ffd700; font-size: 0.85rem; width: 140px;">Responsável</th>
-                                <th style="padding: 10px; text-align: center; color: #ffd700; font-size: 0.85rem; width: 70px;">Duração</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${linhasHTML}
-                        </tbody>
-                    </table>
-                    
-                    <!-- Resumo -->
-                    <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; margin-top: 15px; display: flex; justify-content: space-around;">
-                        <div style="text-align: center;">
-                            <div style="color: #a0a0a0; font-size: 0.7rem;">Início</div>
-                            <div style="color: #ffd700; font-size: 1.1rem; font-weight: bold;">${horaInicio}</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="color: #a0a0a0; font-size: 0.7rem;">Término</div>
-                            <div style="color: #ffd700; font-size: 1.1rem; font-weight: bold;">${horaTermino}</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="color: #a0a0a0; font-size: 0.7rem;">Duração</div>
-                            <div style="color: #ffd700; font-size: 1.1rem; font-weight: bold;">${duracaoTotal} min</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="color: #a0a0a0; font-size: 0.7rem;">Itens</div>
-                            <div style="color: #ffd700; font-size: 1.1rem; font-weight: bold;">${liturgiaItens.length}</div>
-                        </div>
+                    <div>
+                        <div style="font-size: 10px; color: #a0a0a0;">Duração</div>
+                        <div style="font-size: 16px; color: #ffd700; font-weight: bold;">${duracaoTotal} min</div>
                     </div>
-                    
-                    <!-- Rodapé -->
-                    <div style="text-align: center; margin-top: 12px; color: #555; font-size: 0.6rem;">
-                        Gerado em ${new Date().toLocaleString('pt-BR')} | IDAC
+                    <div>
+                        <div style="font-size: 10px; color: #a0a0a0;">Itens</div>
+                        <div style="font-size: 16px; color: #ffd700; font-weight: bold;">${liturgiaItens.length}</div>
                     </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px; font-size: 9px; color: #555;">
+                    Gerado em ${new Date().toLocaleString('pt-BR')} | IDAC
                 </div>
             `;
             
             // Configurações do PDF
             const opt = {
-                margin: [5, 5, 5, 5],
+                margin: 10,
                 filename: `Liturgia_IDAC_${data}_${tipo.replace(/\s/g, '_')}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
+                image: { type: 'jpeg', quality: 0.95 },
                 html2canvas: { 
-                    scale: 1.5,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#1a1a2e',
-                    windowWidth: 800
+                    scale: 2,
+                    backgroundColor: '#1a1a2e'
                 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: 'avoid-all' }
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             
             showToast('Gerando PDF...');
@@ -659,6 +647,27 @@
             toast.textContent = message;
             toast.className = 'toast show' + (isError ? ' error' : '');
             setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function abrirImpressao() {
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            
+            if (liturgiaItens.length === 0) {
+                showToast('Adicione itens à liturgia primeiro!', true);
+                return;
+            }
+            
+            // Salvar antes de abrir impressão (se houver mudanças)
+            if (isAdmin && liturgiaSalva !== JSON.stringify({ horaInicio: document.getElementById('horaInicio').value, itens: liturgiaItens })) {
+                if (confirm('Deseja salvar as alterações antes de imprimir?')) {
+                    salvarLiturgia();
+                }
+            }
+            
+            // Abrir página de impressão
+            const url = `Liturgia_Print_IDAC.html`;
+            window.open(url, '_blank');
         }
 
         function toggleAdmin() {
@@ -729,8 +738,8 @@
         // Grupos disponíveis para novos responsáveis
         const gruposDisponiveis = [
             { id: 'pastores', nome: 'PASTORES', prefixo: 'Pra./Pr.' },
-            { id: 'presbitero', nome: 'PRESBÍTERO', prefixo: 'Pb.' },
             { id: 'evangelista', nome: 'EVANGELISTA', prefixo: 'Ev.' },
+            { id: 'presbitero', nome: 'PRESBÍTERO', prefixo: 'Pb.' },
             { id: 'diaconos', nome: 'DIÁCONOS', prefixo: 'Diác./Diac.' },
             { id: 'ministerios', nome: 'MINISTÉRIOS', prefixo: '' }
         ];
@@ -757,8 +766,8 @@
                     const grupoEscolhido = prompt(
                         'Em qual grupo este responsável se enquadra?\n\n' +
                         '1 - PASTORES\n' +
-                        '2 - PRESBÍTERO\n' +
-                        '3 - EVANGELISTA\n' +
+                        '2 - EVANGELISTA\n' +
+                        '3 - PRESBÍTERO\n' +
                         '4 - DIÁCONOS\n' +
                         '5 - MINISTÉRIOS\n\n' +
                         'Digite o número (1-5):'
