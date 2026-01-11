@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imprimir Liturgia - IDAC</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar button, .toolbar select, .toolbar input {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .toolbar select, .toolbar input {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .toolbar select option {
+            background: #1a1a2e;
+        }
+        
+        .btn-print { background: #3b82f6; color: white; }
+        .btn-back { background: #6b7280; color: white; }
+        
+        .toolbar button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        /* Conteúdo para impressão */
+        .print-content {
+            background: #1a1a2e;
+            padding: 25px;
+            border-radius: 10px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .header-logo {
+            width: 60px;
+            height: auto;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.4));
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+        
+        .header h2 {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            font-weight: normal;
+        }
+        
+        .culto-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        
+        .culto-info span {
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        /* Tabela */
+        .liturgia-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .liturgia-table th {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            padding: 12px 10px;
+            text-align: left;
+            font-size: 0.9rem;
+            border-bottom: 2px solid #ffd700;
+        }
+        
+        .liturgia-table th:last-child {
+            text-align: center;
+        }
+        
+        .liturgia-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.95rem;
+        }
+        
+        .liturgia-table tr:nth-child(even) {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .hora-cell {
+            color: #4ecdc4;
+            font-weight: bold;
+            width: 60px;
+        }
+        
+        .atividade-cell {
+            color: #fff;
+        }
+        
+        .responsavel-cell {
+            color: #ccc;
+            width: 150px;
+        }
+        
+        .duracao-cell {
+            color: #ffd700;
+            font-weight: bold;
+            text-align: center;
+            width: 80px;
+        }
+        
+        /* Resumo */
+        .resumo {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .resumo-item {
+            text-align: center;
+        }
+        
+        .resumo-item .label {
+            font-size: 0.75rem;
+            color: #a0a0a0;
+        }
+        
+        .resumo-item .value {
+            font-size: 1.3rem;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .rodape {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #555;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #a0a0a0;
+            font-size: 1.2rem;
+        }
+        
+        /* Estilos de impressão */
+        @media print {
+            body {
+                background: #1a1a2e !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            .toolbar {
+                display: none !important;
+            }
+            
+            .container {
+                max-width: 100% !important;
+            }
+            
+            .print-content {
+                border-radius: 0 !important;
+                padding: 15mm !important;
+            }
+            
+            .header-logo {
+                width: 50px !important;
+            }
+            
+            .header h1 {
+                font-size: 1.3rem !important;
+            }
+            
+            .culto-info {
+                font-size: 0.9rem !important;
+            }
+            
+            .liturgia-table th,
+            .liturgia-table td {
+                padding: 8px !important;
+                font-size: 0.85rem !important;
+            }
+            
+            .resumo-item .value {
+                font-size: 1.1rem !important;
+            }
+            
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="toolbar">
+            <input type="date" id="dataCulto">
+            <select id="tipoCulto">
+                <option value="Domingo Manhã">Domingo Manhã</option>
+                <option value="Domingo Noite" selected>Domingo Noite</option>
+                <option value="Quarta-feira">Quarta-feira</option>
+                <option value="Culto Especial">Culto Especial</option>
+            </select>
+            <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+            <button class="btn-back" onclick="window.history.back()">← Voltar</button>
+        </div>
+        
+        <div class="print-content" id="printContent">
+            <div class="no-data" id="noData">
+                Selecione a data e tipo de culto para carregar a liturgia
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvLJHhHUqpGVqYzqOTwPVMj1WGFB5CPEY",
+            authDomain: "games-idac.firebaseapp.com",
+            databaseURL: "https://games-idac-default-rtdb.firebaseio.com",
+            projectId: "games-idac",
+            storageBucket: "games-idac.firebasestorage.app",
+            messagingSenderId: "363498516646",
+            appId: "1:363498516646:web:5765bc225e41623ce498ff"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const liturgiaRef = database.ref('liturgias');
+
+        // Elementos
+        const dataCultoEl = document.getElementById('dataCulto');
+        const tipoCultoEl = document.getElementById('tipoCulto');
+        const printContentEl = document.getElementById('printContent');
+        const noDataEl = document.getElementById('noData');
+
+        // Definir data de hoje
+        const hoje = new Date().toISOString().split('T')[0];
+        dataCultoEl.value = hoje;
+
+        // Eventos
+        dataCultoEl.addEventListener('change', carregarLiturgia);
+        tipoCultoEl.addEventListener('change', carregarLiturgia);
+
+        // Carregar ao iniciar
+        carregarLiturgia();
+
+        function carregarLiturgia() {
+            const data = dataCultoEl.value;
+            const tipo = tipoCultoEl.value;
+            
+            if (!data) return;
+            
+            const chave = `${data}_${tipo.replace(/\s/g, '_')}`;
+            
+            liturgiaRef.child(chave).once('value')
+                .then(snapshot => {
+                    const dados = snapshot.val();
+                    if (dados && dados.itens && dados.itens.length > 0) {
+                        renderizarLiturgia(dados);
+                    } else {
+                        printContentEl.innerHTML = `
+                            <div class="no-data">
+                                Nenhuma liturgia encontrada para<br>
+                                <strong>${formatarData(data)} - ${tipo}</strong>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    console.error('Erro ao carregar:', err);
+                    printContentEl.innerHTML = `
+                        <div class="no-data">
+                            Erro ao carregar liturgia
+                        </div>
+                    `;
+                });
+        }
+
+        function formatarData(data) {
+            const dataObj = new Date(data + 'T12:00:00');
+            const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+            const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+            const diaSemana = diasSemana[dataObj.getDay()];
+            const dia = String(dataObj.getDate()).padStart(2, '0');
+            const mes = meses[dataObj.getMonth()];
+            const ano = String(dataObj.getFullYear()).slice(-2);
+            return `${diaSemana}, ${dia} de ${mes} de ${ano}`;
+        }
+
+        function renderizarLiturgia(dados) {
+            const { itens, horaInicio, tipo, data } = dados;
+            
+            let [horas, minutos] = horaInicio.split(':').map(Number);
+            let duracaoTotal = 0;
+            
+            // Gerar linhas da tabela
+            const linhasHTML = itens.map((item, index) => {
+                const horaAtual = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+                
+                minutos += item.duracao;
+                while (minutos >= 60) {
+                    minutos -= 60;
+                    horas++;
+                }
+                duracaoTotal += item.duracao;
+                
+                return `
+                    <tr>
+                        <td class="hora-cell">${horaAtual}</td>
+                        <td class="atividade-cell">${item.atividade || '-'}</td>
+                        <td class="responsavel-cell">${item.responsavel || '-'}</td>
+                        <td class="duracao-cell">${item.duracao} min</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            const horaTermino = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+            const dataFormatada = formatarData(data);
+            
+            printContentEl.innerHTML = `
+                <div class="header">
+                    <img src="https://raw.githubusercontent.com/vanjivaldos-cmyk/games-idac/main/images/LogoGame.png" alt="Logo IDAC" class="header-logo">
+                    <h1>📋 Liturgia IDAC</h1>
+                    <h2>Igreja de Deus Águas Claras</h2>
+                </div>
+                
+                <div class="culto-info">
+                    <span>📅 ${dataFormatada}</span>
+                    <span>⛪ ${tipo}</span>
+                    <span>⏰ ${horaInicio}</span>
+                </div>
+                
+                <table class="liturgia-table">
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Atividade</th>
+                            <th>Responsável</th>
+                            <th>Duração</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${linhasHTML}
+                    </tbody>
+                </table>
+                
+                <div class="resumo">
+                    <div class="resumo-item">
+                        <div class="label">Início</div>
+                        <div class="value">${horaInicio}</div>
+                    </div>
+                    <div class="resumo-item">
+                        <div class="label">Término</div>
+                        <div class="value">${horaTermino}</div>
+                    </div>
+                    <div class="resumo-item">
+                        <div class="label">Duração</div>
+                        <div class="value">${duracaoTotal} min</div>
+                    </div>
+                    <div class="resumo-item">
+                        <div class="label">Itens</div>
+                        <div class="value">${itens.length}</div>
+                    </div>
+                </div>
+                
+                <div class="rodape">
+                    Gerado em ${new Date().toLocaleString('pt-BR')} | IDAC
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
