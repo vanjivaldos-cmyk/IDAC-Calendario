@@ -92,6 +92,8 @@
         .inscricao-nome { font-weight: 600; font-size: 1.1rem; }
         .inscricao-actions { display: flex; gap: 5px; }
         .inscricao-actions button { background: rgba(255,255,255,0.1); border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+        .inscricao-actions .btn-wpp { color: #25D366; }
+        .inscricao-actions .btn-wpp:hover { background: rgba(37, 211, 102, 0.2); }
         .inscricao-actions .btn-edit { color: var(--secondary); }
         .inscricao-actions .btn-edit:hover { background: rgba(255, 215, 0, 0.2); }
         .inscricao-actions .btn-delete { color: var(--danger); }
@@ -158,7 +160,8 @@
             </div>
             <div>
                 <button class="btn-export" onclick="exportarCSV()">📊 Exportar CSV</button>
-                <button class="btn-whatsapp-all" onclick="copiarNumeros()">📲 Copiar Números</button>
+                <button class="btn-whatsapp-all" onclick="abrirModalMensagens()">📲 Enviar WhatsApp</button>
+                <button class="btn-export" onclick="abrirModalConfig()" style="background: #8B2F87; margin-left: 10px;">⚙️ Configurações</button>
             </div>
         </div>
 
@@ -179,32 +182,32 @@
                     <label>Ministério que atua (ou atuará) <span class="required">*</span></label>
                     <select id="ministerio" required>
                         <option value="">-- Selecione o Ministério --</option>
-                        <option value="Mulheres">Mulheres</option>
-                        <option value="Homens">Homens</option>
-                        <option value="Infantil">Infantil</option>
-                        <option value="Teens">Teens</option>
-                        <option value="Melhor Idade">Melhor Idade</option>
                         <option value="Ação e Assistência Social">Ação e Assistência Social</option>
-                        <option value="Louvor & Artes">Louvor & Artes</option>
-                        <option value="Intercessão">Intercessão</option>
-                        <option value="Ensino e EBD">Ensino e EBD</option>
-                        <option value="Família">Família</option>
-                        <option value="Missões e Evangelismo">Missões e Evangelismo</option>
                         <option value="Candeias no Lar">Candeias no Lar</option>
                         <option value="Conselho Fiscal">Conselho Fiscal</option>
                         <option value="Conselho Local">Conselho Local</option>
+                        <option value="Ensino e EBD">Ensino e EBD</option>
+                        <option value="Família">Família</option>
+                        <option value="Homens">Homens</option>
+                        <option value="Infantil">Infantil</option>
+                        <option value="Intercessão">Intercessão</option>
+                        <option value="Louvor & Artes">Louvor & Artes</option>
+                        <option value="Melhor Idade">Melhor Idade</option>
+                        <option value="Missões e Evangelismo">Missões e Evangelismo</option>
+                        <option value="Mulheres">Mulheres</option>
+                        <option value="Teens">Teens</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Função <span class="required">*</span></label>
                     <select id="funcao" required onchange="toggleOutroFuncao()">
                         <option value="">-- Selecione a Função --</option>
-                        <option value="Pastor(a)">Pastor(a)</option>
-                        <option value="Evangelista">Evangelista</option>
-                        <option value="Presbítero">Presbítero</option>
-                        <option value="Diácono(isa)">Diácono(isa)</option>
-                        <option value="Líder">Líder</option>
                         <option value="Co-Líder">Co-Líder</option>
+                        <option value="Diácono(isa)">Diácono(isa)</option>
+                        <option value="Evangelista">Evangelista</option>
+                        <option value="Líder">Líder</option>
+                        <option value="Pastor(a)">Pastor(a)</option>
+                        <option value="Presbítero">Presbítero</option>
                         <option value="Outro">Outro (especificar)</option>
                     </select>
                     <div class="outro-wrapper" id="outroFuncaoWrapper">
@@ -285,26 +288,92 @@
             <div class="form-group"><label>Ministério</label>
                 <select id="editMinisterio">
                     <option value="">-- Selecione --</option>
-                    <option value="Mulheres">Mulheres</option>
-                    <option value="Homens">Homens</option>
-                    <option value="Infantil">Infantil</option>
-                    <option value="Teens">Teens</option>
-                    <option value="Melhor Idade">Melhor Idade</option>
                     <option value="Ação e Assistência Social">Ação e Assistência Social</option>
-                    <option value="Louvor & Artes">Louvor & Artes</option>
-                    <option value="Intercessão">Intercessão</option>
-                    <option value="Ensino e EBD">Ensino e EBD</option>
-                    <option value="Família">Família</option>
-                    <option value="Missões e Evangelismo">Missões e Evangelismo</option>
                     <option value="Candeias no Lar">Candeias no Lar</option>
                     <option value="Conselho Fiscal">Conselho Fiscal</option>
                     <option value="Conselho Local">Conselho Local</option>
+                    <option value="Ensino e EBD">Ensino e EBD</option>
+                    <option value="Família">Família</option>
+                    <option value="Homens">Homens</option>
+                    <option value="Infantil">Infantil</option>
+                    <option value="Intercessão">Intercessão</option>
+                    <option value="Louvor & Artes">Louvor & Artes</option>
+                    <option value="Melhor Idade">Melhor Idade</option>
+                    <option value="Missões e Evangelismo">Missões e Evangelismo</option>
+                    <option value="Mulheres">Mulheres</option>
+                    <option value="Teens">Teens</option>
                 </select>
             </div>
             <div class="form-group"><label>Função</label><input type="text" id="editFuncao"></div>
             <div class="modal-edit-actions">
                 <button class="btn-cancel" onclick="fecharModal('modalEditar')">Cancelar</button>
                 <button class="btn-save" onclick="salvarEdicao()">💾 Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalConfig">
+        <div class="modal-content modal-edit" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <h2 class="modal-title">⚙️ Configurações</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- Ministérios -->
+                <div>
+                    <h3 style="color: var(--secondary); margin-bottom: 15px; font-size: 1rem;">⛪ Ministérios</h3>
+                    <div id="listaMinisteriosConfig" style="max-height: 300px; overflow-y: auto;"></div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <input type="text" id="novoMinisterio" placeholder="Novo ministério" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white;">
+                        <button onclick="adicionarMinisterio()" style="padding: 10px 15px; background: var(--success); color: white; border: none; border-radius: 8px; cursor: pointer;">➕</button>
+                    </div>
+                </div>
+                
+                <!-- Funções -->
+                <div>
+                    <h3 style="color: var(--secondary); margin-bottom: 15px; font-size: 1rem;">👔 Funções</h3>
+                    <div id="listaFuncoesConfig" style="max-height: 300px; overflow-y: auto;"></div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <input type="text" id="novaFuncao" placeholder="Nova função" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white;">
+                        <button onclick="adicionarFuncao()" style="padding: 10px 15px; background: var(--success); color: white; border: none; border-radius: 8px; cursor: pointer;">➕</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-edit-actions" style="margin-top: 30px;">
+                <button class="btn-cancel" onclick="fecharModal('modalConfig')">Fechar</button>
+                <button class="btn-save" onclick="salvarConfiguracoes()">💾 Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalWhatsApp">
+        <div class="modal-content modal-edit" style="max-width: 700px;">
+            <h2 class="modal-title">📲 Enviar WhatsApp</h2>
+            <input type="hidden" id="wppInscritoId">
+            
+            <div class="form-group">
+                <label>Destinatário</label>
+                <div id="wppDestinatario" style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; font-weight: 600;"></div>
+            </div>
+            
+            <div class="form-group">
+                <label>Tipo de Mensagem</label>
+                <select id="wppTipoMensagem" onchange="carregarMensagemTemplate()">
+                    <option value="confirmacao">📝 Confirmação de Inscrição</option>
+                    <option value="lembrete">⏰ Lembrete do Evento</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Mensagem (editável)</label>
+                <textarea id="wppMensagem" style="width:100%; height: 200px; padding: 15px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; border: 2px solid rgba(255,255,255,0.15); border-radius: 12px; background: rgba(255,255,255,0.08); color: var(--light); resize: vertical;"></textarea>
+                <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 8px;">
+                    <strong>Variáveis:</strong> {nome} {ministerio} {funcao} {comissoes} {diasFaltando}
+                </div>
+            </div>
+            
+            <div class="modal-edit-actions">
+                <button class="btn-cancel" onclick="fecharModal('modalWhatsApp')">Cancelar</button>
+                <button class="btn-save" style="background: #25D366;" onclick="enviarWhatsApp()">📲 Enviar</button>
             </div>
         </div>
     </div>
@@ -320,7 +389,8 @@
         let isAdmin = false;
         let inscricoes = [];
         let ultimaInscricao = null; // Guardar dados da última inscrição
-        const ministerios = ['Mulheres', 'Homens', 'Infantil', 'Teens', 'Melhor Idade', 'Ação e Assistência Social', 'Louvor & Artes', 'Intercessão', 'Ensino e EBD', 'Família', 'Missões e Evangelismo', 'Candeias no Lar', 'Conselho Fiscal', 'Conselho Local'];
+        const ministerios = ['Ação e Assistência Social', 'Candeias no Lar', 'Conselho Fiscal', 'Conselho Local', 'Ensino e EBD', 'Família', 'Homens', 'Infantil', 'Intercessão', 'Louvor & Artes', 'Melhor Idade', 'Missões e Evangelismo', 'Mulheres', 'Teens'];
+        const funcoesBase = ['Co-Líder', 'Diácono(isa)', 'Evangelista', 'Líder', 'Pastor(a)', 'Presbítero'];
 
         function init() { carregarInscricoes(); setupMascaraTelefone(); }
 
@@ -403,7 +473,7 @@
             mc.innerHTML = Object.entries(cont).sort((a, b) => b[1] - a[1]).map(([n, c]) => '<div class="ministerio-stat"><span class="ministerio-stat-name">' + n + '</span><span class="ministerio-stat-count">' + c + '</span></div>').join('');
             const lc = document.getElementById('inscricoesLista');
             if (inscricoes.length === 0) { lc.innerHTML = '<p style="text-align:center;opacity:0.6">Nenhuma inscrição.</p>'; return; }
-            lc.innerHTML = [...inscricoes].sort((a, b) => a.nome.localeCompare(b.nome)).map(i => '<div class="inscricao-item"><div class="inscricao-header"><div class="inscricao-nome">' + i.nome + '</div><div class="inscricao-actions"><button class="btn-edit" onclick="editarInscricao(\'' + i.id + '\')">✏️</button><button class="btn-delete" onclick="excluirInscricao(\'' + i.id + '\',\'' + i.nome.replace(/'/g, "\\'") + '\')">🗑️</button></div></div><div class="inscricao-info"><span>📱 ' + formatarTel(i.whatsapp) + '</span><span>⛪ ' + (i.ministerio || '-') + '</span><span>👔 ' + (i.funcao || '-') + '</span></div><div class="inscricao-comissoes">' + (i.comissoes || []).map(c => '<span class="inscricao-comissao-tag">' + c + '</span>').join('') + '</div></div>').join('');
+            lc.innerHTML = [...inscricoes].sort((a, b) => a.nome.localeCompare(b.nome)).map(i => '<div class="inscricao-item"><div class="inscricao-header"><div class="inscricao-nome">' + i.nome + '</div><div class="inscricao-actions"><button class="btn-wpp" onclick="enviarWhatsAppIndividual(\'' + i.id + '\')" title="WhatsApp">📲</button><button class="btn-edit" onclick="editarInscricao(\'' + i.id + '\')">✏️</button><button class="btn-delete" onclick="excluirInscricao(\'' + i.id + '\',\'' + i.nome.replace(/'/g, "\\'") + '\')">🗑️</button></div></div><div class="inscricao-info"><span>📱 ' + formatarTel(i.whatsapp) + '</span><span>⛪ ' + (i.ministerio || '-') + '</span><span>👔 ' + (i.funcao || '-') + '</span></div><div class="inscricao-comissoes">' + (i.comissoes || []).map(c => '<span class="inscricao-comissao-tag">' + c + '</span>').join('') + '</div></div>').join('');
         }
 
         function formatarTel(t) { return t && t.length === 11 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 7) + '-' + t.slice(7) : t || ''; }
@@ -435,6 +505,237 @@
         }
 
         function copiarNumeros() { if (!inscricoes.length) { showToast('Nenhuma inscrição!', 'error'); return; } navigator.clipboard.writeText(inscricoes.map(i => '55' + i.whatsapp).join('\n')).then(() => showToast(inscricoes.length + ' números copiados!', 'success')); }
+
+        // Templates de mensagem
+        const mensagensTemplate = {
+            confirmacao: `Paz do Senhor, {nome}! 🙏
+
+Sua inscrição no *Encontro de Líderes IDAC 2026* foi confirmada com sucesso! 🎉
+
+📋 *Seus dados:*
+⛪ Ministério: *{ministerio}*
+👔 Função: *{funcao}*
+🤝 Comissão(ões): *{comissoes}*
+
+📅 *Data:* 24 de Janeiro de 2026
+⏰ *Horário:* 8h às 18h
+📍 *Local:* A definir
+
+🚗 *Ponto de Encontro:*
+_Estacionamento da IDAC às 7h da manhã para irmos juntos!_
+
+Qualquer dúvida, estamos à disposição!
+
+Deus abençoe! 🙌
+*Bispo Vanjivaldo e Pra Kélia*
+_Igreja de Deus Águas Claras - IDAC_`,
+
+            lembrete: `Paz do Senhor, {nome}! 🙏
+
+Faltam apenas *{diasFaltando} dia(s)* para o nosso *Encontro de Líderes IDAC 2026*! 🎉
+
+📅 *Data:* 24 de Janeiro de 2026
+⏰ *Horário:* 8h às 18h
+
+🚗 *Lembrete:*
+_Estaremos nos reunindo no estacionamento da IDAC às 7h da manhã para irmos juntos!_
+
+Você está confirmado(a) na comissão: *{comissoes}*
+
+Alguma dúvida? É só perguntar! 😊
+
+Nos vemos lá! 🙌
+*Bispo Vanjivaldo e Pra Kélia*
+_Igreja de Deus Águas Claras - IDAC_`
+        };
+
+        let inscritoSelecionado = null;
+
+        function calcularDiasFaltando() {
+            const evento = new Date('2026-01-24');
+            const hoje = new Date();
+            const diff = Math.ceil((evento - hoje) / (1000 * 60 * 60 * 24));
+            return diff > 0 ? diff : 0;
+        }
+
+        function enviarWhatsAppIndividual(id) {
+            inscritoSelecionado = inscricoes.find(i => i.id === id);
+            if (!inscritoSelecionado) return;
+            
+            document.getElementById('wppInscritoId').value = id;
+            document.getElementById('wppDestinatario').innerHTML = `<span style="color: var(--secondary);">${inscritoSelecionado.nome}</span> - 📱 ${formatarTel(inscritoSelecionado.whatsapp)}`;
+            document.getElementById('wppTipoMensagem').value = 'confirmacao';
+            carregarMensagemTemplate();
+            document.getElementById('modalWhatsApp').classList.add('show');
+        }
+
+        function carregarMensagemTemplate() {
+            if (!inscritoSelecionado) return;
+            
+            const tipo = document.getElementById('wppTipoMensagem').value;
+            let msg = mensagensTemplate[tipo];
+            
+            // Substituir variáveis
+            const primeiroNome = inscritoSelecionado.nome.split(' ')[0];
+            msg = msg.replace(/{nome}/g, primeiroNome);
+            msg = msg.replace(/{ministerio}/g, inscritoSelecionado.ministerio || '-');
+            msg = msg.replace(/{funcao}/g, inscritoSelecionado.funcao || '-');
+            msg = msg.replace(/{comissoes}/g, (inscritoSelecionado.comissoes || []).join(', '));
+            msg = msg.replace(/{diasFaltando}/g, calcularDiasFaltando());
+            
+            document.getElementById('wppMensagem').value = msg;
+        }
+
+        function enviarWhatsApp() {
+            if (!inscritoSelecionado || !inscritoSelecionado.whatsapp) {
+                showToast('Telefone não encontrado!', 'error');
+                return;
+            }
+            
+            const mensagem = document.getElementById('wppMensagem').value;
+            const telefone = '55' + inscritoSelecionado.whatsapp;
+            
+            // Normalizar e abrir WhatsApp
+            const mensagemNormalizada = mensagem.normalize('NFC');
+            const url = `https://api.whatsapp.com/send?phone=${telefone}&text=${encodeURIComponent(mensagemNormalizada)}`;
+            window.open(url, '_blank');
+            
+            fecharModal('modalWhatsApp');
+            showToast('WhatsApp aberto!', 'success');
+        }
+
+        function abrirModalMensagens() {
+            if (!inscricoes.length) {
+                showToast('Nenhuma inscrição!', 'error');
+                return;
+            }
+            showToast('Clique no 📲 de cada inscrito para enviar mensagem individual', 'success');
+        }
+
+        // ==================== CONFIGURAÇÕES (ADMIN) ====================
+        
+        let ministeriosConfig = [...ministerios];
+        let funcoesConfig = [...funcoesBase];
+        const configRef = database.ref('encontro_lideres_2026/config');
+        
+        // Carregar configurações do Firebase
+        function carregarConfiguracoes() {
+            configRef.once('value').then(snap => {
+                const data = snap.val();
+                if (data) {
+                    if (data.ministerios && data.ministerios.length) ministeriosConfig = data.ministerios.sort();
+                    if (data.funcoes && data.funcoes.length) funcoesConfig = data.funcoes.sort();
+                    atualizarSelectsFormulario();
+                }
+            });
+        }
+        
+        function abrirModalConfig() {
+            renderizarListaMinisterios();
+            renderizarListaFuncoes();
+            document.getElementById('modalConfig').classList.add('show');
+        }
+        
+        function renderizarListaMinisterios() {
+            const container = document.getElementById('listaMinisteriosConfig');
+            container.innerHTML = ministeriosConfig.sort().map((m, i) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;">
+                    <span style="font-size: 0.9rem;">${m}</span>
+                    <button onclick="removerMinisterio(${i})" style="background: rgba(231,76,60,0.2); color: #e74c3c; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">🗑️</button>
+                </div>
+            `).join('');
+        }
+        
+        function renderizarListaFuncoes() {
+            const container = document.getElementById('listaFuncoesConfig');
+            container.innerHTML = funcoesConfig.sort().map((f, i) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;">
+                    <span style="font-size: 0.9rem;">${f}</span>
+                    <button onclick="removerFuncao(${i})" style="background: rgba(231,76,60,0.2); color: #e74c3c; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">🗑️</button>
+                </div>
+            `).join('');
+        }
+        
+        function adicionarMinisterio() {
+            const input = document.getElementById('novoMinisterio');
+            const valor = input.value.trim();
+            if (!valor) return;
+            if (ministeriosConfig.includes(valor)) {
+                showToast('Ministério já existe!', 'error');
+                return;
+            }
+            ministeriosConfig.push(valor);
+            ministeriosConfig.sort();
+            input.value = '';
+            renderizarListaMinisterios();
+            showToast('Ministério adicionado!', 'success');
+        }
+        
+        function removerMinisterio(index) {
+            const nome = ministeriosConfig[index];
+            if (confirm(`Remover "${nome}"?`)) {
+                ministeriosConfig.splice(index, 1);
+                renderizarListaMinisterios();
+                showToast('Ministério removido!', 'success');
+            }
+        }
+        
+        function adicionarFuncao() {
+            const input = document.getElementById('novaFuncao');
+            const valor = input.value.trim();
+            if (!valor) return;
+            if (funcoesConfig.includes(valor)) {
+                showToast('Função já existe!', 'error');
+                return;
+            }
+            funcoesConfig.push(valor);
+            funcoesConfig.sort();
+            input.value = '';
+            renderizarListaFuncoes();
+            showToast('Função adicionada!', 'success');
+        }
+        
+        function removerFuncao(index) {
+            const nome = funcoesConfig[index];
+            if (confirm(`Remover "${nome}"?`)) {
+                funcoesConfig.splice(index, 1);
+                renderizarListaFuncoes();
+                showToast('Função removida!', 'success');
+            }
+        }
+        
+        function salvarConfiguracoes() {
+            configRef.set({
+                ministerios: ministeriosConfig,
+                funcoes: funcoesConfig
+            }).then(() => {
+                atualizarSelectsFormulario();
+                showToast('Configurações salvas!', 'success');
+                fecharModal('modalConfig');
+            }).catch(err => {
+                showToast('Erro ao salvar: ' + err.message, 'error');
+            });
+        }
+        
+        function atualizarSelectsFormulario() {
+            // Atualizar select de ministério
+            const selMin = document.getElementById('ministerio');
+            const selMinEdit = document.getElementById('editMinisterio');
+            const optionsMin = '<option value="">-- Selecione o Ministério --</option>' + 
+                ministeriosConfig.sort().map(m => `<option value="${m}">${m}</option>`).join('');
+            selMin.innerHTML = optionsMin;
+            selMinEdit.innerHTML = optionsMin.replace('Selecione o Ministério', 'Selecione');
+            
+            // Atualizar select de função
+            const selFunc = document.getElementById('funcao');
+            const optionsFunc = '<option value="">-- Selecione a Função --</option>' + 
+                funcoesConfig.sort().map(f => `<option value="${f}">${f}</option>`).join('') +
+                '<option value="Outro">Outro (especificar)</option>';
+            selFunc.innerHTML = optionsFunc;
+        }
+        
+        // Carregar configurações ao iniciar
+        carregarConfiguracoes();
 
         function showToast(m, t = 'success') { const toast = document.getElementById('toast'); toast.textContent = m; toast.className = 'toast ' + t + ' show'; setTimeout(() => toast.classList.remove('show'), 3000); }
         function fecharModal(id) { document.getElementById(id).classList.remove('show'); }
