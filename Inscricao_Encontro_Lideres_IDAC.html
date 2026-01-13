@@ -627,11 +627,13 @@ _Igreja de Deus Águas Claras - IDAC_`
             
             // Substituir variáveis
             const primeiroNome = inscritoSelecionado.nome.split(' ')[0];
+            const funcao = inscritoSelecionado.funcao || '';
+            const nomeComFuncao = funcao ? funcao + ' ' + primeiroNome : primeiroNome;
             const tempoRestante = calcularDiasFaltando();
             
-            msg = msg.replace(/{nome}/g, primeiroNome);
+            msg = msg.replace(/{nome}/g, nomeComFuncao);
             msg = msg.replace(/{ministerio}/g, inscritoSelecionado.ministerio || '-');
-            msg = msg.replace(/{funcao}/g, inscritoSelecionado.funcao || '-');
+            msg = msg.replace(/{funcao}/g, funcao || '-');
             msg = msg.replace(/{comissoes}/g, (inscritoSelecionado.comissoes || []).join(', '));
             msg = msg.replace(/{diasFaltando}/g, tempoRestante.texto);
             
