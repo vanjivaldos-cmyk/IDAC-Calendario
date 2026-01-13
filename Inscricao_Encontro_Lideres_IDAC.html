@@ -523,7 +523,17 @@
                 .catch(e => showToast('Erro: ' + e.message, 'error'));
         }
 
-        function excluirInscricao(id, nome) { if (confirm('Excluir ' + nome + '?')) inscricoesRef.child(id).remove().then(() => showToast('Excluído!', 'success')); }
+        function excluirInscricao(id, nome) { 
+            if (confirm('Excluir ' + nome + '?')) {
+                inscricoesRef.child(id).remove()
+                    .then(() => {
+                        showToast('Excluído!', 'success');
+                        // Forçar atualização do painel
+                        setTimeout(() => atualizarPainelAdmin(), 500);
+                    })
+                    .catch(err => showToast('Erro ao excluir: ' + err.message, 'error'));
+            }
+        }
 
         function exportarCSV() {
             if (!inscricoes.length) { showToast('Nenhuma inscrição!', 'error'); return; }
@@ -660,15 +670,16 @@ _Igreja de Deus Águas Claras - IDAC_`
         let funcoesConfig = [...funcoesBase];
         const configRef = database.ref('encontro_lideres_2026/config');
         
-        // Carregar configurações do Firebase
+        // Carregar configurações do Firebase (tempo real)
         function carregarConfiguracoes() {
-            configRef.once('value').then(snap => {
+            configRef.on('value', snap => {
                 const data = snap.val();
                 if (data) {
                     if (data.ministerios && data.ministerios.length) ministeriosConfig = data.ministerios.sort();
                     if (data.funcoes && data.funcoes.length) funcoesConfig = data.funcoes.sort();
-                    atualizarSelectsFormulario();
                 }
+                atualizarSelectsFormulario();
+                console.log('Configurações carregadas do Firebase');
             });
         }
         
@@ -768,12 +779,14 @@ _Igreja de Deus Águas Claras - IDAC_`
             selMin.innerHTML = optionsMin;
             selMinEdit.innerHTML = optionsMin.replace('Selecione o Ministério', 'Selecione');
             
-            // Atualizar select de função
+            // Atualizar select de função (incluindo as do Firebase)
             const selFunc = document.getElementById('funcao');
             const optionsFunc = '<option value="">-- Selecione a Função --</option>' + 
                 funcoesConfig.sort().map(f => `<option value="${f}">${f}</option>`).join('') +
                 '<option value="Outro">Outro (especificar)</option>';
             selFunc.innerHTML = optionsFunc;
+            
+            console.log('Selects atualizados! Ministérios:', ministeriosConfig.length, 'Funções:', funcoesConfig.length);
         }
         
         // Carregar configurações ao iniciar
