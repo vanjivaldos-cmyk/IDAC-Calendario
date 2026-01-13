@@ -144,10 +144,6 @@
                 <h3 class="admin-section-title">📊 Resumo por Comissão</h3>
                 <div class="admin-stats">
                     <div class="stat-card"><div class="stat-number" id="totalInscritos">0</div><div class="stat-label">Total</div></div>
-                    <div class="stat-card"><div class="stat-number" id="totalCafe">0</div><div class="stat-label">☕ Café</div></div>
-                    <div class="stat-card"><div class="stat-number" id="totalAlmoco">0</div><div class="stat-label">🍽️ Almoço</div></div>
-                    <div class="stat-card"><div class="stat-number" id="totalLimpeza">0</div><div class="stat-label">🧹 Limpeza</div></div>
-                    <div class="stat-card"><div class="stat-number" id="totalApoio">0</div><div class="stat-label">📋 Apoio</div></div>
                 </div>
             </div>
             <div class="admin-section">
@@ -463,14 +459,46 @@
 
         function atualizarPainelAdmin() {
             document.getElementById('totalInscritos').textContent = inscricoes.length;
-            document.getElementById('totalCafe').textContent = inscricoes.filter(i => i.comissoes?.includes('Café da Manhã')).length;
-            document.getElementById('totalAlmoco').textContent = inscricoes.filter(i => i.comissoes?.includes('Almoço')).length;
-            document.getElementById('totalLimpeza').textContent = inscricoes.filter(i => i.comissoes?.includes('Limpeza')).length;
-            document.getElementById('totalApoio').textContent = inscricoes.filter(i => i.comissoes?.includes('Apoio Administrativo')).length;
-            const mc = document.getElementById('ministerioStats'), cont = {};
-            ministerios.forEach(m => cont[m] = 0);
-            inscricoes.forEach(i => { if (i.ministerio && cont[i.ministerio] !== undefined) cont[i.ministerio]++; });
-            mc.innerHTML = Object.entries(cont).sort((a, b) => b[1] - a[1]).map(([n, c]) => '<div class="ministerio-stat"><span class="ministerio-stat-name">' + n + '</span><span class="ministerio-stat-count">' + c + '</span></div>').join('');
+            
+            // Contagem por comissão
+            const cafe = inscricoes.filter(i => i.comissoes?.includes('Café da Manhã')).length;
+            const almoco = inscricoes.filter(i => i.comissoes?.includes('Almoço')).length;
+            const limpeza = inscricoes.filter(i => i.comissoes?.includes('Limpeza')).length;
+            const apoio = inscricoes.filter(i => i.comissoes?.includes('Apoio Administrativo')).length;
+            
+            // Mostrar apenas comissões com inscritos, ordenado alfabeticamente
+            const comissoesStats = [
+                { nome: 'Almoço', count: almoco, emoji: '🍽️' },
+                { nome: 'Apoio Administrativo', count: apoio, emoji: '📋' },
+                { nome: 'Café da Manhã', count: cafe, emoji: '☕' },
+                { nome: 'Limpeza', count: limpeza, emoji: '🧹' }
+            ].filter(c => c.count > 0);
+            
+            // Atualizar cards de comissão
+            const statsContainer = document.querySelector('.admin-stats');
+            statsContainer.innerHTML = `
+                <div class="stat-card"><div class="stat-number">${inscricoes.length}</div><div class="stat-label">Total</div></div>
+                ${comissoesStats.map(c => `<div class="stat-card"><div class="stat-number">${c.count}</div><div class="stat-label">${c.emoji} ${c.nome}</div></div>`).join('')}
+            `;
+            
+            // Estatísticas por ministério - ordenado alfabeticamente e sem zeros
+            const mc = document.getElementById('ministerioStats');
+            const cont = {};
+            ministeriosConfig.forEach(m => cont[m] = 0);
+            inscricoes.forEach(i => { if (i.ministerio && cont[i.ministerio] !== undefined) cont[i.ministerio]++; else if (i.ministerio) cont[i.ministerio] = 1; });
+            
+            // Filtrar zeros e ordenar alfabeticamente
+            const ministeriosComInscritos = Object.entries(cont)
+                .filter(([nome, count]) => count > 0)
+                .sort((a, b) => a[0].localeCompare(b[0]));
+            
+            if (ministeriosComInscritos.length === 0) {
+                mc.innerHTML = '<p style="opacity: 0.6; font-size: 0.9rem;">Nenhum ministério com inscritos ainda.</p>';
+            } else {
+                mc.innerHTML = ministeriosComInscritos.map(([n, c]) => '<div class="ministerio-stat"><span class="ministerio-stat-name">' + n + '</span><span class="ministerio-stat-count">' + c + '</span></div>').join('');
+            }
+            
+            // Lista de inscritos
             const lc = document.getElementById('inscricoesLista');
             if (inscricoes.length === 0) { lc.innerHTML = '<p style="text-align:center;opacity:0.6">Nenhuma inscrição.</p>'; return; }
             lc.innerHTML = [...inscricoes].sort((a, b) => a.nome.localeCompare(b.nome)).map(i => '<div class="inscricao-item"><div class="inscricao-header"><div class="inscricao-nome">' + i.nome + '</div><div class="inscricao-actions"><button class="btn-wpp" onclick="enviarWhatsAppIndividual(\'' + i.id + '\')" title="WhatsApp">📲</button><button class="btn-edit" onclick="editarInscricao(\'' + i.id + '\')">✏️</button><button class="btn-delete" onclick="excluirInscricao(\'' + i.id + '\',\'' + i.nome.replace(/'/g, "\\'") + '\')">🗑️</button></div></div><div class="inscricao-info"><span>📱 ' + formatarTel(i.whatsapp) + '</span><span>⛪ ' + (i.ministerio || '-') + '</span><span>👔 ' + (i.funcao || '-') + '</span></div><div class="inscricao-comissoes">' + (i.comissoes || []).map(c => '<span class="inscricao-comissao-tag">' + c + '</span>').join('') + '</div></div>').join('');
@@ -532,7 +560,7 @@ _Igreja de Deus Águas Claras - IDAC_`,
 
             lembrete: `Paz do Senhor, {nome}! 🙏
 
-Faltam apenas *{diasFaltando} dia(s)* para o nosso *Encontro de Líderes IDAC 2026*! 🎉
+Faltam apenas *{diasFaltando}* para o nosso *Encontro de Líderes IDAC 2026*! 🎉
 
 📅 *Data:* 24 de Janeiro de 2026
 ⏰ *Horário:* 8h às 18h
@@ -552,10 +580,22 @@ _Igreja de Deus Águas Claras - IDAC_`
         let inscritoSelecionado = null;
 
         function calcularDiasFaltando() {
-            const evento = new Date('2026-01-24');
+            const evento = new Date('2026-01-24T08:00:00');
             const hoje = new Date();
-            const diff = Math.ceil((evento - hoje) / (1000 * 60 * 60 * 24));
-            return diff > 0 ? diff : 0;
+            const diffMs = evento - hoje;
+            
+            if (diffMs <= 0) return { dias: 0, horas: 0, texto: 'O evento já começou!' };
+            
+            const dias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            
+            let texto = '';
+            if (dias > 0) texto += dias + ' dia(s)';
+            if (dias > 0 && horas > 0) texto += ' e ';
+            if (horas > 0) texto += horas + ' hora(s)';
+            if (!texto) texto = 'Menos de 1 hora';
+            
+            return { dias, horas, texto };
         }
 
         function enviarWhatsAppIndividual(id) {
@@ -577,11 +617,13 @@ _Igreja de Deus Águas Claras - IDAC_`
             
             // Substituir variáveis
             const primeiroNome = inscritoSelecionado.nome.split(' ')[0];
+            const tempoRestante = calcularDiasFaltando();
+            
             msg = msg.replace(/{nome}/g, primeiroNome);
             msg = msg.replace(/{ministerio}/g, inscritoSelecionado.ministerio || '-');
             msg = msg.replace(/{funcao}/g, inscritoSelecionado.funcao || '-');
             msg = msg.replace(/{comissoes}/g, (inscritoSelecionado.comissoes || []).join(', '));
-            msg = msg.replace(/{diasFaltando}/g, calcularDiasFaltando());
+            msg = msg.replace(/{diasFaltando}/g, tempoRestante.texto);
             
             document.getElementById('wppMensagem').value = msg;
         }
