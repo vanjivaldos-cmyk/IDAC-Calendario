@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscrição - Encontro de Líderes IDAC 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #8B2F87;
+            --primary-dark: #6B1F67;
+            --secondary: #FFD700;
+            --accent: #E8B923;
+            --dark: #1a1a2e;
+            --light: #f8f6f2;
+            --success: #27ae60;
+            --danger: #e74c3c;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: var(--light);
+            overflow-x: hidden;
+        }
+
+        /* Background decorativo */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(139, 47, 135, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(139, 47, 135, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+            background: linear-gradient(180deg, rgba(139, 47, 135, 0.3) 0%, transparent 100%);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '✝';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            font-size: 150px;
+            opacity: 0.05;
+            color: var(--secondary);
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+            color: var(--dark);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 6vw, 3rem);
+            font-weight: 700;
+            color: var(--light);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 span {
+            color: var(--secondary);
+        }
+
+        .header-subtitle {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 20px;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .header-info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-info-item .icon {
+            font-size: 1.5rem;
+        }
+
+        .header-info-item .text {
+            text-align: left;
+        }
+
+        .header-info-item .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .header-info-item .value {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        /* Card do formulário */
+        .form-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .form-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--secondary);
+        }
+
+        /* Form groups */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--light);
+            font-size: 0.95rem;
+        }
+
+        .form-group label .required {
+            color: var(--danger);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px 18px;
+            font-size: 1rem;
+            font-family: 'Montserrat', sans-serif;
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.08);
+            color: var(--light);
+            transition: all 0.3s ease;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: rgba(255,255,255,0.12);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .form-group select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23FFD700' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 50px;
+        }
+
+        .form-group select option {
+            background: var(--dark);
+            color: var(--light);
+            padding: 10px;
+        }
+
+        /* Telefone com máscara */
+        .phone-input-wrapper {
+            position: relative;
+        }
+
+        .phone-prefix {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .phone-input {
+            padding-left: 50px !important;
+        }
+
+        .input-hint {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 5px;
+        }
+
+        .input-error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-error.show {
+            display: block;
+        }
+
+        /* Cargo com autocomplete */
+        .cargo-wrapper {
+            position: relative;
+        }
+
+        .cargo-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--dark);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .cargo-suggestions.show {
+            display: block;
+        }
+
+        .cargo-suggestion {
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .cargo-suggestion:hover {
+            background: rgba(139, 47, 135, 0.3);
+        }
+
+        .cargo-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .cargo-add-new {
+            padding: 12px 18px;
+            cursor: pointer;
+            color: var(--secondary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cargo-add-new:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Comissões */
+        .comissoes-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+
+        .comissoes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .comissao-item {
+            position: relative;
+        }
+
+        .comissao-item input[type="checkbox"] {
+            display: none;
+        }
+
+        .comissao-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 18px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .comissao-label:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.25);
+        }
+
+        .comissao-item input:checked + .comissao-label {
+            background: rgba(139, 47, 135, 0.3);
+            border-color: var(--primary);
+        }
+
+        .comissao-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .comissao-item input:checked + .comissao-label .comissao-checkbox {
+            background: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        .comissao-checkbox::after {
+            content: '✓';
+            color: var(--dark);
+            font-weight: bold;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s;
+        }
+
+        .comissao-item input:checked + .comissao-label .comissao-checkbox::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .comissao-icon {
+            font-size: 1.5rem;
+        }
+
+        .comissao-text {
+            flex: 1;
+        }
+
+        .comissao-name {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .comissao-desc {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        /* Botão de enviar */
+        .btn-submit {
+            width: 100%;
+            padding: 18px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+            color: var(--dark);
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-submit .loading {
+            display: none;
+        }
+
+        .btn-submit.loading .text {
+            display: none;
+        }
+
+        .btn-submit.loading .loading {
+            display: inline-block;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        /* Modal de sucesso */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%);
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 2px solid rgba(255,215,0,0.3);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 15px;
+        }
+
+        .modal-text {
+            color: rgba(255,255,255,0.8);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .modal-btn {
+            padding: 15px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: var(--secondary);
+            color: var(--dark);
+            transition: all 0.3s;
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255,215,0,0.4);
+        }
+
+        /* Admin Panel */
+        .admin-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(139, 47, 135, 0.5);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .admin-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .admin-panel {
+            display: none;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+
+        .admin-panel.show {
+            display: block;
+        }
+
+        .admin-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .inscricoes-lista {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .inscricao-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .inscricao-nome {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .inscricao-info {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .inscricao-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .inscricao-comissoes {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .inscricao-comissao-tag {
+            background: rgba(139, 47, 135, 0.3);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .btn-export {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .btn-export:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-whatsapp-all {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-whatsapp-all:hover {
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+
+        .footer a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        /* Responsivo */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 30px 15px;
+            }
+
+            .header-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .form-card {
+                padding: 25px 20px;
+            }
+
+            .comissoes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-badge">IDAC 2026</div>
+            <h1>Encontro de <span>Líderes</span></h1>
+            <p class="header-subtitle">Igreja de Deus Águas Claras</p>
+            
+            <div class="header-info">
+                <div class="header-info-item">
+                    <div class="icon">📅</div>
+                    <div class="text">
+                        <div class="label">Data</div>
+                        <div class="value">24 de Janeiro</div>
+                    </div>
+                </div>
+                <div class="header-info-item">
+                    <div class="icon">⏰</div>
+                    <div class="text">
+                        <div class="label">Horário</div>
+                        <div class="value">8h às 18h</div>
+                    </div>
+                </div>
+                <div class="header-info-item">
+                    <div class="icon">🙏</div>
+                    <div class="text">
+                        <div class="label">Duração</div>
+                        <div class="value">10h de Comunhão!</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Painel Admin (oculto por padrão) -->
+        <div class="admin-panel" id="adminPanel">
+            <h2 class="admin-title">🔐 Painel Administrativo</h2>
+            
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalInscritos">0</div>
+                    <div class="stat-label">Inscritos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalCafe">0</div>
+                    <div class="stat-label">☕ Café</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalAlmoco">0</div>
+                    <div class="stat-label">🍽️ Almoço</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalLimpeza">0</div>
+                    <div class="stat-label">🧹 Limpeza</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalApoio">0</div>
+                    <div class="stat-label">📋 Apoio</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 15px; color: var(--secondary);">📋 Lista de Inscritos</h3>
+            <div class="inscricoes-lista" id="inscricoesLista">
+                <!-- Preenchido via JavaScript -->
+            </div>
+            
+            <div>
+                <button class="btn-export" onclick="exportarCSV()">📊 Exportar CSV</button>
+                <button class="btn-whatsapp-all" onclick="abrirGrupoWhatsApp()">📲 Criar Lista WhatsApp</button>
+            </div>
+        </div>
+
+        <!-- Formulário -->
+        <div class="form-card">
+            <h2 class="form-title">📝 Faça sua Inscrição</h2>
+            
+            <form id="formInscricao" onsubmit="return false;">
+                <!-- Nome -->
+                <div class="form-group">
+                    <label>Nome Completo <span class="required">*</span></label>
+                    <input type="text" id="nome" placeholder="Digite seu nome completo" required>
+                </div>
+                
+                <!-- WhatsApp -->
+                <div class="form-group">
+                    <label>WhatsApp <span class="required">*</span></label>
+                    <div class="phone-input-wrapper">
+                        <input type="tel" id="whatsapp" class="phone-input" 
+                               placeholder="(61) 99999-9999" 
+                               maxlength="15"
+                               required>
+                    </div>
+                    <div class="input-hint">Digite o DDD (61 ou 62) + 9 dígitos</div>
+                    <div class="input-error" id="whatsappError">Formato inválido. Use: (XX) 9XXXX-XXXX</div>
+                </div>
+                
+                <!-- Cargo -->
+                <div class="form-group">
+                    <label>Cargo/Ministério que atua (ou atuará) <span class="required">*</span></label>
+                    <div class="cargo-wrapper">
+                        <input type="text" id="cargo" 
+                               placeholder="Digite ou selecione seu cargo/ministério" 
+                               autocomplete="off"
+                               required>
+                        <div class="cargo-suggestions" id="cargoSuggestions">
+                            <!-- Preenchido via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Comissões -->
+                <div class="form-group">
+                    <label class="comissoes-title">Comissão(ões) que deseja ajudar <span class="required">*</span></label>
+                    <div class="comissoes-grid">
+                        <div class="comissao-item">
+                            <input type="checkbox" id="comissao_cafe" value="Café da Manhã">
+                            <label class="comissao-label" for="comissao_cafe">
+                                <div class="comissao-checkbox"></div>
+                                <div class="comissao-icon">☕</div>
+                                <div class="comissao-text">
+                                    <div class="comissao-name">Café da Manhã</div>
+                                    <div class="comissao-desc">Preparo e organização</div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="comissao-item">
+                            <input type="checkbox" id="comissao_almoco" value="Almoço">
+                            <label class="comissao-label" for="comissao_almoco">
+                                <div class="comissao-checkbox"></div>
+                                <div class="comissao-icon">🍽️</div>
+                                <div class="comissao-text">
+                                    <div class="comissao-name">Almoço</div>
+                                    <div class="comissao-desc">Preparo e servir</div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="comissao-item">
+                            <input type="checkbox" id="comissao_limpeza" value="Limpeza">
+                            <label class="comissao-label" for="comissao_limpeza">
+                                <div class="comissao-checkbox"></div>
+                                <div class="comissao-icon">🧹</div>
+                                <div class="comissao-text">
+                                    <div class="comissao-name">Limpeza</div>
+                                    <div class="comissao-desc">Organização do ambiente</div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="comissao-item">
+                            <input type="checkbox" id="comissao_apoio" value="Apoio Administrativo">
+                            <label class="comissao-label" for="comissao_apoio">
+                                <div class="comissao-checkbox"></div>
+                                <div class="comissao-icon">📋</div>
+                                <div class="comissao-text">
+                                    <div class="comissao-name">Apoio Administrativo</div>
+                                    <div class="comissao-desc">Credenciamento e apoio</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="input-error" id="comissaoError">Selecione pelo menos uma comissão</div>
+                </div>
+                
+                <button type="submit" class="btn-submit" id="btnSubmit" onclick="enviarInscricao()">
+                    <span class="text">Confirmar Inscrição</span>
+                    <span class="loading">Enviando...</span>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Igreja de Deus Águas Claras - IDAC</p>
+            <p>Encontro de Líderes 2026 • <a href="#">@idac.aguasclaras</a></p>
+        </footer>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    
+    <!-- Modal de Sucesso -->
+    <div class="modal-overlay" id="modalSucesso">
+        <div class="modal-content">
+            <div class="modal-icon">🎉</div>
+            <h2 class="modal-title">Inscrição Confirmada!</h2>
+            <p class="modal-text">
+                Sua inscrição no <strong>Encontro de Líderes IDAC 2026</strong> foi realizada com sucesso!
+                <br><br>
+                Nos vemos no dia <strong>24 de janeiro</strong>, às <strong>8h</strong>!
+            </p>
+            <button class="modal-btn" onclick="fecharModal()">Entendi!</button>
+        </div>
+    </div>
+    
+    <!-- Botão Admin -->
+    <button class="admin-toggle" onclick="toggleAdmin()" title="Painel Admin">🔐</button>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_FbMpEZYn_lLZiSjGmP0sMM7XcuTn8Qw",
+            authDomain: "games-idac.firebaseapp.com",
+            databaseURL: "https://games-idac-default-rtdb.firebaseio.com",
+            projectId: "games-idac",
+            storageBucket: "games-idac.appspot.com"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const inscricoesRef = database.ref('encontro_lideres_2026/inscricoes');
+        const cargosRef = database.ref('encontro_lideres_2026/cargos');
+        
+        // Estado
+        let isAdmin = false;
+        let cargosLista = [];
+        let inscricoes = [];
+        
+        // ==================== INICIALIZAÇÃO ====================
+        
+        function init() {
+            carregarCargos();
+            carregarInscricoes();
+            setupMascaraTelefone();
+            setupCargoAutocomplete();
+        }
+        
+        // ==================== MÁSCARA DE TELEFONE ====================
+        
+        function setupMascaraTelefone() {
+            const input = document.getElementById('whatsapp');
+            
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                
+                // Limitar a 11 dígitos
+                if (value.length > 11) {
+                    value = value.slice(0, 11);
+                }
+                
+                // Aplicar máscara
+                if (value.length > 0) {
+                    if (value.length <= 2) {
+                        value = '(' + value;
+                    } else if (value.length <= 7) {
+                        value = '(' + value.slice(0, 2) + ') ' + value.slice(2);
+                    } else {
+                        value = '(' + value.slice(0, 2) + ') ' + value.slice(2, 7) + '-' + value.slice(7);
+                    }
+                }
+                
+                e.target.value = value;
+                validarTelefone();
+            });
+            
+            input.addEventListener('blur', validarTelefone);
+        }
+        
+        function validarTelefone() {
+            const input = document.getElementById('whatsapp');
+            const error = document.getElementById('whatsappError');
+            const value = input.value.replace(/\D/g, '');
+            
+            // Deve ter 11 dígitos e DDD válido (61, 62, etc)
+            const dddValidos = ['61', '62', '63', '64', '65', '66', '67', '68', '69', '11', '12', '13', '14', '15', '16', '17', '18', '19', '21', '22', '24', '27', '28', '31', '32', '33', '34', '35', '37', '38', '41', '42', '43', '44', '45', '46', '47', '48', '49', '51', '53', '54', '55', '71', '73', '74', '75', '77', '79', '81', '82', '83', '84', '85', '86', '87', '88', '89', '91', '92', '93', '94', '95', '96', '97', '98', '99'];
+            
+            if (value.length === 11 && dddValidos.includes(value.slice(0, 2)) && value[2] === '9') {
+                error.classList.remove('show');
+                input.style.borderColor = 'var(--success)';
+                return true;
+            } else if (value.length > 0) {
+                error.classList.add('show');
+                input.style.borderColor = 'var(--danger)';
+                return false;
+            }
+            
+            input.style.borderColor = '';
+            error.classList.remove('show');
+            return false;
+        }
+        
+        // ==================== CARGO AUTOCOMPLETE ====================
+        
+        function setupCargoAutocomplete() {
+            const input = document.getElementById('cargo');
+            const suggestions = document.getElementById('cargoSuggestions');
+            
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase().trim();
+                
+                if (value.length === 0) {
+                    suggestions.classList.remove('show');
+                    return;
+                }
+                
+                // Filtrar cargos
+                const filtrados = cargosLista.filter(c => 
+                    c.toLowerCase().includes(value)
+                );
+                
+                renderizarSugestoes(filtrados, value);
+            });
+            
+            input.addEventListener('focus', function() {
+                if (this.value.length > 0) {
+                    const value = this.value.toLowerCase().trim();
+                    const filtrados = cargosLista.filter(c => 
+                        c.toLowerCase().includes(value)
+                    );
+                    renderizarSugestoes(filtrados, value);
+                }
+            });
+            
+            // Fechar ao clicar fora
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.cargo-wrapper')) {
+                    suggestions.classList.remove('show');
+                }
+            });
+        }
+        
+        function renderizarSugestoes(filtrados, valorDigitado) {
+            const suggestions = document.getElementById('cargoSuggestions');
+            
+            let html = '';
+            
+            // Sugestões existentes
+            filtrados.forEach(cargo => {
+                html += `<div class="cargo-suggestion" onclick="selecionarCargo('${cargo.replace(/'/g, "\\'")}')">${cargo}</div>`;
+            });
+            
+            // Opção de adicionar novo
+            if (valorDigitado && !cargosLista.some(c => c.toLowerCase() === valorDigitado)) {
+                const valorCapitalizado = valorDigitado.split(' ').map(p => 
+                    p.charAt(0).toUpperCase() + p.slice(1)
+                ).join(' ');
+                html += `<div class="cargo-add-new" onclick="adicionarCargo('${valorCapitalizado.replace(/'/g, "\\'")}')">
+                    ➕ Adicionar "${valorCapitalizado}"
+                </div>`;
+            }
+            
+            if (html) {
+                suggestions.innerHTML = html;
+                suggestions.classList.add('show');
+            } else {
+                suggestions.classList.remove('show');
+            }
+        }
+        
+        function selecionarCargo(cargo) {
+            document.getElementById('cargo').value = cargo;
+            document.getElementById('cargoSuggestions').classList.remove('show');
+        }
+        
+        function adicionarCargo(cargo) {
+            // Adicionar à lista local
+            if (!cargosLista.includes(cargo)) {
+                cargosLista.push(cargo);
+                cargosLista.sort();
+                
+                // Salvar no Firebase
+                cargosRef.set(cargosLista);
+            }
+            
+            selecionarCargo(cargo);
+        }
+        
+        // ==================== FIREBASE ====================
+        
+        function carregarCargos() {
+            cargosRef.on('value', snapshot => {
+                cargosLista = snapshot.val() || [];
+                console.log('Cargos carregados:', cargosLista.length);
+            });
+        }
+        
+        function carregarInscricoes() {
+            inscricoesRef.on('value', snapshot => {
+                const dados = snapshot.val() || {};
+                inscricoes = Object.entries(dados).map(([id, data]) => ({
+                    id,
+                    ...data
+                }));
+                
+                if (isAdmin) {
+                    atualizarPainelAdmin();
+                }
+                
+                console.log('Inscrições carregadas:', inscricoes.length);
+            });
+        }
+        
+        // ==================== ENVIAR INSCRIÇÃO ====================
+        
+        function enviarInscricao() {
+            // Validar campos
+            const nome = document.getElementById('nome').value.trim();
+            const whatsapp = document.getElementById('whatsapp').value.replace(/\D/g, '');
+            const cargo = document.getElementById('cargo').value.trim();
+            
+            // Comissões selecionadas
+            const comissoes = [];
+            if (document.getElementById('comissao_cafe').checked) comissoes.push('Café da Manhã');
+            if (document.getElementById('comissao_almoco').checked) comissoes.push('Almoço');
+            if (document.getElementById('comissao_limpeza').checked) comissoes.push('Limpeza');
+            if (document.getElementById('comissao_apoio').checked) comissoes.push('Apoio Administrativo');
+            
+            // Validações
+            if (!nome) {
+                showToast('Digite seu nome completo!', 'error');
+                document.getElementById('nome').focus();
+                return;
+            }
+            
+            if (!validarTelefone()) {
+                showToast('WhatsApp inválido! Use o formato (XX) 9XXXX-XXXX', 'error');
+                document.getElementById('whatsapp').focus();
+                return;
+            }
+            
+            if (!cargo) {
+                showToast('Informe seu cargo ou ministério!', 'error');
+                document.getElementById('cargo').focus();
+                return;
+            }
+            
+            if (comissoes.length === 0) {
+                document.getElementById('comissaoError').classList.add('show');
+                showToast('Selecione pelo menos uma comissão!', 'error');
+                return;
+            }
+            document.getElementById('comissaoError').classList.remove('show');
+            
+            // Mostrar loading
+            const btn = document.getElementById('btnSubmit');
+            btn.classList.add('loading');
+            btn.disabled = true;
+            
+            // Adicionar cargo se novo
+            if (!cargosLista.includes(cargo)) {
+                cargosLista.push(cargo);
+                cargosLista.sort();
+                cargosRef.set(cargosLista);
+            }
+            
+            // Salvar inscrição
+            const inscricao = {
+                nome,
+                whatsapp,
+                cargo,
+                comissoes,
+                dataInscricao: new Date().toISOString()
+            };
+            
+            inscricoesRef.push(inscricao)
+                .then(() => {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    
+                    // Limpar formulário
+                    document.getElementById('formInscricao').reset();
+                    document.getElementById('whatsapp').style.borderColor = '';
+                    
+                    // Mostrar modal de sucesso
+                    document.getElementById('modalSucesso').classList.add('show');
+                })
+                .catch(err => {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    showToast('Erro ao enviar: ' + err.message, 'error');
+                });
+        }
+        
+        // ==================== ADMIN ====================
+        
+        function toggleAdmin() {
+            if (!isAdmin) {
+                const senha = prompt('Digite a senha de administrador:');
+                if (senha === 'idac2026') {
+                    isAdmin = true;
+                    document.getElementById('adminPanel').classList.add('show');
+                    atualizarPainelAdmin();
+                    showToast('Modo admin ativado!', 'success');
+                } else if (senha !== null) {
+                    showToast('Senha incorreta!', 'error');
+                }
+            } else {
+                isAdmin = false;
+                document.getElementById('adminPanel').classList.remove('show');
+                showToast('Modo admin desativado', 'success');
+            }
+        }
+        
+        function atualizarPainelAdmin() {
+            // Estatísticas
+            document.getElementById('totalInscritos').textContent = inscricoes.length;
+            document.getElementById('totalCafe').textContent = inscricoes.filter(i => i.comissoes.includes('Café da Manhã')).length;
+            document.getElementById('totalAlmoco').textContent = inscricoes.filter(i => i.comissoes.includes('Almoço')).length;
+            document.getElementById('totalLimpeza').textContent = inscricoes.filter(i => i.comissoes.includes('Limpeza')).length;
+            document.getElementById('totalApoio').textContent = inscricoes.filter(i => i.comissoes.includes('Apoio Administrativo')).length;
+            
+            // Lista de inscritos
+            const container = document.getElementById('inscricoesLista');
+            
+            if (inscricoes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; opacity: 0.6;">Nenhuma inscrição ainda.</p>';
+                return;
+            }
+            
+            // Ordenar por nome
+            const ordenados = [...inscricoes].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            container.innerHTML = ordenados.map(i => `
+                <div class="inscricao-item">
+                    <div class="inscricao-nome">${i.nome}</div>
+                    <div class="inscricao-info">
+                        <span>📱 ${formatarTelefone(i.whatsapp)}</span>
+                        <span>👔 ${i.cargo}</span>
+                    </div>
+                    <div class="inscricao-comissoes">
+                        ${i.comissoes.map(c => `<span class="inscricao-comissao-tag">${getEmojiComissao(c)} ${c}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function getEmojiComissao(comissao) {
+            const emojis = {
+                'Café da Manhã': '☕',
+                'Almoço': '🍽️',
+                'Limpeza': '🧹',
+                'Apoio Administrativo': '📋'
+            };
+            return emojis[comissao] || '📌';
+        }
+        
+        function formatarTelefone(tel) {
+            if (!tel) return '';
+            if (tel.length === 11) {
+                return `(${tel.slice(0,2)}) ${tel.slice(2,7)}-${tel.slice(7)}`;
+            }
+            return tel;
+        }
+        
+        function exportarCSV() {
+            if (inscricoes.length === 0) {
+                showToast('Nenhuma inscrição para exportar!', 'error');
+                return;
+            }
+            
+            let csv = 'Nome,WhatsApp,Cargo,Comissões,Data Inscrição\n';
+            
+            inscricoes.forEach(i => {
+                csv += `"${i.nome}","${formatarTelefone(i.whatsapp)}","${i.cargo}","${i.comissoes.join('; ')}","${new Date(i.dataInscricao).toLocaleDateString('pt-BR')}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'inscricoes_encontro_lideres_2026.csv';
+            link.click();
+            
+            showToast('CSV exportado com sucesso!', 'success');
+        }
+        
+        function abrirGrupoWhatsApp() {
+            if (inscricoes.length === 0) {
+                showToast('Nenhuma inscrição ainda!', 'error');
+                return;
+            }
+            
+            // Gerar lista de números
+            const numeros = inscricoes.map(i => '55' + i.whatsapp).join(',');
+            
+            // Copiar para clipboard
+            navigator.clipboard.writeText(numeros).then(() => {
+                showToast('Números copiados! Cole no WhatsApp para criar grupo.', 'success');
+            });
+        }
+        
+        // ==================== UTILITÁRIOS ====================
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        function fecharModal() {
+            document.getElementById('modalSucesso').classList.remove('show');
+        }
+        
+        // Fechar modal ao clicar fora
+        document.getElementById('modalSucesso').addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModal();
+            }
+        });
+        
+        // Inicializar
+        init();
+    </script>
+</body>
+</html>
