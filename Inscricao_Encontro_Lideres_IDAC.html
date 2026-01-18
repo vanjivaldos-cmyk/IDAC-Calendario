@@ -464,8 +464,14 @@
                 <div class="stat">Enviados: <span id="wppDrillEnviados">0</span></div>
             </div>
             <div class="modal-wpp-drill-msg">
-                <label>Mensagem (editável):</label>
+                <label>Tipo de Mensagem:</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button id="btnMsgGeral" onclick="selecionarTipoMensagem('geral')" style="flex: 1; padding: 10px; border: 2px solid var(--secondary); background: rgba(255,215,0,0.2); color: var(--secondary); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">📢 Geral</button>
+                    <button id="btnMsgEspecifica" onclick="selecionarTipoMensagem('especifica')" style="flex: 1; padding: 10px; border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: var(--light); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">🎯 Específica</button>
+                </div>
+                <label id="labelTipoMsg" style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 8px; display: block;">Usando: Mensagem Geral (para todas as categorias)</label>
                 <textarea id="wppDrillMensagem"></textarea>
+                <button onclick="salvarMensagemDrill()" style="margin-top: 10px; padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">💾 Salvar Mensagem</button>
             </div>
             <div class="modal-wpp-drill-lista" id="wppDrillLista"></div>
             <div class="modal-wpp-drill-footer">
@@ -483,6 +489,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const inscricoesRef = database.ref('encontro_lideres_2026/inscricoes');
+        const mensagensRef = database.ref('encontro_lideres_2026/mensagens_whatsapp');
 
         let isAdmin = false;
         let inscricoes = [];
@@ -490,7 +497,7 @@
         const ministerios = ['Ação e Assistência Social', 'Candeias no Lar', 'Conselho Fiscal', 'Conselho Local', 'Ensino e EBD', 'Família', 'Homens', 'Infantil', 'Intercessão', 'Louvor & Artes', 'Melhor Idade', 'Missões e Evangelismo', 'Mulheres', 'Teens'];
         const funcoesBase = ['Co-Líder', 'Diácono(isa)', 'Evangelista', 'Líder', 'Pastor(a)', 'Presbítero'];
 
-        function init() { carregarInscricoes(); setupMascaraTelefone(); }
+        function init() { carregarInscricoes(); setupMascaraTelefone(); carregarMensagensSalvas(); }
 
         function setupMascaraTelefone() {
             document.querySelectorAll('input[type="tel"]').forEach(input => {
@@ -686,6 +693,15 @@
         // Variáveis globais para drill-down
         let detalhesAtual = null;
         let enviadosDrill = {};
+        let mensagensSalvas = {};
+        let tipoMensagemSelecionada = 'geral'; // 'geral' ou 'especifica'
+
+        // Carregar mensagens salvas do Firebase
+        function carregarMensagensSalvas() {
+            mensagensRef.on('value', snap => {
+                mensagensSalvas = snap.val() || {};
+            });
+        }
 
         // Calcular dias faltando para o evento
         function calcularDiasFaltandoEvento() {
@@ -724,28 +740,22 @@
                 return;
             }
             
-            const diasFaltando = calcularDiasFaltandoEvento();
-            
-            // Mensagem padrão com emojis em Unicode
-            const emojiAtencao = '\u26A0\uFE0F'; // ⚠️
-            const emojiFesta = '\uD83C\uDF89'; // 🎉
-            const emojiMaos = '\uD83D\uDE4C'; // 🙌
-            
-            const mensagemPadrao = `${emojiAtencao} *_Atenção_*
-${emojiFesta} _Novidades de nosso Encontro no dia 24/01_ ${emojiFesta}
-
-Faltam ${diasFaltando} dias para nosso encontro, e gostaria de trazer atualizações para você, prezado(a) {funcao} {nome}, sendo que continuamos contando com sua oração e jejum para que tudo corra bem, a novidade de hoje é:
-
-.....
-
-Qualquer dúvida, estamos à disposição!
-Deus abençoe! ${emojiMaos}
-*Comissão Organizadora*
-
-Igreja de Deus Águas Claras - IDAC`;
-            
             document.getElementById('wppDrillCategoria').textContent = detalhesAtual.titulo;
-            document.getElementById('wppDrillMensagem').value = mensagemPadrao;
+            
+            // Verificar se tem mensagem específica para esta categoria
+            const chaveEspecifica = detalhesAtual.tipo + '_' + detalhesAtual.valor.replace(/\s+/g, '_');
+            
+            if (mensagensSalvas[chaveEspecifica]) {
+                // Tem mensagem específica, usar ela
+                tipoMensagemSelecionada = 'especifica';
+                document.getElementById('wppDrillMensagem').value = mensagensSalvas[chaveEspecifica];
+            } else {
+                // Usar mensagem geral (salva ou padrão)
+                tipoMensagemSelecionada = 'geral';
+                document.getElementById('wppDrillMensagem').value = obterMensagemGeral();
+            }
+            
+            atualizarBotoestipoMensagem();
             
             // Inicializar enviados para esta categoria se não existir
             const chave = `${detalhesAtual.tipo}_${detalhesAtual.valor}`;
@@ -758,6 +768,76 @@ Igreja de Deus Águas Claras - IDAC`;
             // Fechar modal detalhes e abrir modal WhatsApp
             document.getElementById('modalDetalhes').classList.remove('show');
             document.getElementById('modalWppDrill').classList.add('show');
+        }
+        
+        // Obter mensagem geral (salva ou padrão)
+        function obterMensagemGeral() {
+            if (mensagensSalvas['_GERAL_']) {
+                return mensagensSalvas['_GERAL_'];
+            }
+            
+            // Mensagem padrão com emojis em Unicode
+            const diasFaltando = calcularDiasFaltandoEvento();
+            const emojiAtencao = '\u26A0\uFE0F'; // ⚠️
+            const emojiFesta = '\uD83C\uDF89'; // 🎉
+            const emojiMaos = '\uD83D\uDE4C'; // 🙌
+            
+            return `${emojiAtencao} *_Atenção_*
+${emojiFesta} _Novidades de nosso Encontro no dia 24/01_ ${emojiFesta}
+
+Faltam ${diasFaltando} dias para nosso encontro, e gostaria de trazer atualizações para você, prezado(a) {funcao} {nome}, sendo que continuamos contando com sua oração e jejum para que tudo corra bem, a novidade de hoje é:
+
+.....
+
+Qualquer dúvida, estamos à disposição!
+Deus abençoe! ${emojiMaos}
+*Comissão Organizadora*
+
+Igreja de Deus Águas Claras - IDAC`;
+        }
+        
+        // Selecionar tipo de mensagem (geral ou específica)
+        function selecionarTipoMensagem(tipo) {
+            tipoMensagemSelecionada = tipo;
+            
+            if (tipo === 'geral') {
+                document.getElementById('wppDrillMensagem').value = obterMensagemGeral();
+            } else {
+                // Específica - carregar se existir ou usar a geral como base
+                const chaveEspecifica = detalhesAtual.tipo + '_' + detalhesAtual.valor.replace(/\s+/g, '_');
+                if (mensagensSalvas[chaveEspecifica]) {
+                    document.getElementById('wppDrillMensagem').value = mensagensSalvas[chaveEspecifica];
+                } else {
+                    document.getElementById('wppDrillMensagem').value = obterMensagemGeral();
+                }
+            }
+            
+            atualizarBotoestipoMensagem();
+        }
+        
+        // Atualizar visual dos botões de tipo de mensagem
+        function atualizarBotoestipoMensagem() {
+            const btnGeral = document.getElementById('btnMsgGeral');
+            const btnEspecifica = document.getElementById('btnMsgEspecifica');
+            const label = document.getElementById('labelTipoMsg');
+            
+            if (tipoMensagemSelecionada === 'geral') {
+                btnGeral.style.background = 'rgba(255,215,0,0.2)';
+                btnGeral.style.borderColor = 'var(--secondary)';
+                btnGeral.style.color = 'var(--secondary)';
+                btnEspecifica.style.background = 'rgba(255,255,255,0.05)';
+                btnEspecifica.style.borderColor = 'rgba(255,255,255,0.2)';
+                btnEspecifica.style.color = 'var(--light)';
+                label.textContent = 'Usando: Mensagem Geral (para todas as categorias)';
+            } else {
+                btnEspecifica.style.background = 'rgba(139,47,135,0.3)';
+                btnEspecifica.style.borderColor = 'var(--primary)';
+                btnEspecifica.style.color = 'var(--light)';
+                btnGeral.style.background = 'rgba(255,255,255,0.05)';
+                btnGeral.style.borderColor = 'rgba(255,255,255,0.2)';
+                btnGeral.style.color = 'var(--light)';
+                label.textContent = 'Usando: Mensagem Específica para ' + detalhesAtual.titulo;
+            }
         }
 
         // Renderizar lista de pessoas no modal WhatsApp
@@ -869,6 +949,32 @@ Igreja de Deus Águas Claras - IDAC`;
         function voltarParaDetalhes() {
             document.getElementById('modalWppDrill').classList.remove('show');
             document.getElementById('modalDetalhes').classList.add('show');
+        }
+
+        // Salvar mensagem personalizada no Firebase
+        function salvarMensagemDrill() {
+            if (!detalhesAtual) return;
+            
+            const mensagem = document.getElementById('wppDrillMensagem').value;
+            let chaveMsg;
+            let tipoSalvo;
+            
+            if (tipoMensagemSelecionada === 'geral') {
+                chaveMsg = '_GERAL_';
+                tipoSalvo = 'Geral';
+            } else {
+                chaveMsg = detalhesAtual.tipo + '_' + detalhesAtual.valor.replace(/\s+/g, '_');
+                tipoSalvo = 'Específica para ' + detalhesAtual.titulo;
+            }
+            
+            mensagensRef.child(chaveMsg).set(mensagem)
+                .then(() => {
+                    mensagensSalvas[chaveMsg] = mensagem;
+                    showToast('Mensagem ' + tipoSalvo + ' salva!', 'success');
+                })
+                .catch(err => {
+                    showToast('Erro ao salvar: ' + err.message, 'error');
+                });
         }
 
         function exportarCSV() {
