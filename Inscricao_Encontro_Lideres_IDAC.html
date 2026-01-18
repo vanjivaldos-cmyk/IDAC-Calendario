@@ -114,6 +114,25 @@
         .footer { text-align: center; padding: 30px; opacity: 0.6; font-size: 0.9rem; }
         .footer a { color: var(--secondary); text-decoration: none; }
         @media (max-width: 600px) { .container { padding: 15px; } .header { padding: 30px 15px; } .header-info { flex-direction: column; gap: 10px; } .form-card { padding: 25px 20px; } .comissoes-grid { grid-template-columns: 1fr; } .admin-stats { grid-template-columns: repeat(2, 1fr); } .ministerio-stats { grid-template-columns: 1fr; } .modal-content { padding: 30px 20px; } }
+        /* Estilos para drill-down */
+        .stat-card.clickable, .ministerio-stat.clickable { cursor: pointer; transition: all 0.3s ease; }
+        .stat-card.clickable:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2); }
+        .ministerio-stat.clickable:hover { transform: scale(1.02); background: rgba(139, 47, 135, 0.4); box-shadow: 0 3px 15px rgba(139, 47, 135, 0.3); }
+        .modal-detalhes { max-width: 500px; max-height: 80vh; display: flex; flex-direction: column; }
+        .modal-detalhes-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .modal-detalhes-titulo { display: flex; align-items: center; gap: 12px; }
+        .modal-detalhes-titulo .emoji { font-size: 2rem; }
+        .modal-detalhes-titulo h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--secondary); margin: 0; }
+        .modal-detalhes-count { background: var(--secondary); color: var(--dark); font-weight: 700; padding: 8px 16px; border-radius: 20px; font-size: 1rem; }
+        .modal-detalhes-lista { flex: 1; overflow-y: auto; max-height: 400px; margin: 20px 0; }
+        .modal-detalhes-item { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; border-left: 3px solid var(--primary); transition: all 0.2s; }
+        .modal-detalhes-item:hover { background: rgba(255,255,255,0.12); }
+        .modal-detalhes-item .numero { background: rgba(139, 47, 135, 0.3); color: var(--secondary); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; flex-shrink: 0; }
+        .modal-detalhes-item .info { flex: 1; }
+        .modal-detalhes-item .nome { font-weight: 600; font-size: 1rem; }
+        .modal-detalhes-item .ministerio { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
+        .btn-voltar { padding: 12px 30px; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; background: rgba(255,255,255,0.1); color: var(--light); transition: all 0.3s; display: flex; align-items: center; gap: 8px; margin: 0 auto; }
+        .btn-voltar:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -374,6 +393,23 @@
         </div>
     </div>
 
+    <!-- Modal Detalhes (Drill-down) -->
+    <div class="modal-overlay" id="modalDetalhes">
+        <div class="modal-content modal-detalhes">
+            <div class="modal-detalhes-header">
+                <div class="modal-detalhes-titulo">
+                    <span class="emoji" id="detalhesEmoji">📊</span>
+                    <h3 id="detalhesTitulo">Detalhes</h3>
+                </div>
+                <div class="modal-detalhes-count" id="detalhesCount">0</div>
+            </div>
+            <div class="modal-detalhes-lista" id="detalhesLista"></div>
+            <button class="btn-voltar" onclick="fecharModal('modalDetalhes')">
+                ← Voltar
+            </button>
+        </div>
+    </div>
+
     <button class="admin-toggle" onclick="toggleAdmin()" title="Painel Admin">🔐</button>
 
     <script>
@@ -477,8 +513,8 @@
             // Atualizar cards de comissão
             const statsContainer = document.querySelector('.admin-stats');
             statsContainer.innerHTML = `
-                <div class="stat-card"><div class="stat-number">${inscricoes.length}</div><div class="stat-label">Total</div></div>
-                ${comissoesStats.map(c => `<div class="stat-card"><div class="stat-number">${c.count}</div><div class="stat-label">${c.emoji} ${c.nome}</div></div>`).join('')}
+                <div class="stat-card clickable" onclick="mostrarDetalhes('total', 'Total de Inscritos', '📊')"><div class="stat-number">${inscricoes.length}</div><div class="stat-label">Total</div></div>
+                ${comissoesStats.map(c => `<div class="stat-card clickable" onclick="mostrarDetalhes('comissao', '${c.nome}', '${c.emoji}')"><div class="stat-number">${c.count}</div><div class="stat-label">${c.emoji} ${c.nome}</div></div>`).join('')}
             `;
             
             // Estatísticas por ministério - ordenado alfabeticamente e sem zeros
@@ -495,7 +531,7 @@
             if (ministeriosComInscritos.length === 0) {
                 mc.innerHTML = '<p style="opacity: 0.6; font-size: 0.9rem;">Nenhum ministério com inscritos ainda.</p>';
             } else {
-                mc.innerHTML = ministeriosComInscritos.map(([n, c]) => '<div class="ministerio-stat"><span class="ministerio-stat-name">' + n + '</span><span class="ministerio-stat-count">' + c + '</span></div>').join('');
+                mc.innerHTML = ministeriosComInscritos.map(([n, c]) => '<div class="ministerio-stat clickable" onclick="mostrarDetalhes(\'ministerio\', \'' + n.replace(/'/g, "\\'") + '\', \'⛪\')"><span class="ministerio-stat-name">' + n + '</span><span class="ministerio-stat-count">' + c + '</span></div>').join('');
             }
             
             // Lista de inscritos
@@ -533,6 +569,49 @@
                     })
                     .catch(err => showToast('Erro ao excluir: ' + err.message, 'error'));
             }
+        }
+
+        function mostrarDetalhes(tipo, valor, emoji) {
+            let pessoas = [];
+            let titulo = '';
+            
+            if (tipo === 'total') {
+                pessoas = [...inscricoes];
+                titulo = 'Total de Inscritos';
+            } else if (tipo === 'comissao') {
+                pessoas = inscricoes.filter(i => i.comissoes && i.comissoes.includes(valor));
+                titulo = valor;
+            } else if (tipo === 'ministerio') {
+                pessoas = inscricoes.filter(i => i.ministerio === valor);
+                titulo = valor;
+            }
+            
+            // Ordenar por nome
+            pessoas.sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            // Atualizar modal
+            document.getElementById('detalhesEmoji').textContent = emoji;
+            document.getElementById('detalhesTitulo').textContent = titulo;
+            document.getElementById('detalhesCount').textContent = pessoas.length + ' pessoa' + (pessoas.length !== 1 ? 's' : '');
+            
+            // Renderizar lista
+            const lista = document.getElementById('detalhesLista');
+            if (pessoas.length === 0) {
+                lista.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 30px;">Nenhuma pessoa encontrada.</p>';
+            } else {
+                lista.innerHTML = pessoas.map((p, idx) => `
+                    <div class="modal-detalhes-item">
+                        <div class="numero">${idx + 1}</div>
+                        <div class="info">
+                            <div class="nome">${p.nome}</div>
+                            <div class="ministerio">${tipo === 'ministerio' ? (p.funcao || '-') : (p.ministerio || '-')}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Mostrar modal
+            document.getElementById('modalDetalhes').classList.add('show');
         }
 
         function exportarCSV() {
