@@ -133,6 +133,42 @@
         .modal-detalhes-item .ministerio { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
         .btn-voltar { padding: 12px 30px; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; background: rgba(255,255,255,0.1); color: var(--light); transition: all 0.3s; display: flex; align-items: center; gap: 8px; margin: 0 auto; }
         .btn-voltar:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+        /* Botões do modal detalhes */
+        .modal-detalhes-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+        .modal-detalhes-actions button { padding: 10px 20px; font-size: 0.9rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px; }
+        .btn-csv-detalhes { background: var(--success); color: white; }
+        .btn-csv-detalhes:hover { background: #219a52; transform: scale(1.05); }
+        .btn-wpp-detalhes { background: #25D366; color: white; }
+        .btn-wpp-detalhes:hover { background: #1da851; transform: scale(1.05); }
+        /* Modal WhatsApp Drill-down */
+        .modal-wpp-drill { max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-wpp-drill-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .modal-wpp-drill-titulo h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--secondary); margin: 0; }
+        .modal-wpp-drill-stats { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .modal-wpp-drill-stats .stat { background: rgba(255,255,255,0.08); padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; }
+        .modal-wpp-drill-stats .stat span { font-weight: 700; color: var(--secondary); }
+        .modal-wpp-drill-msg { margin-bottom: 15px; }
+        .modal-wpp-drill-msg label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+        .modal-wpp-drill-msg textarea { width: 100%; height: 180px; padding: 12px; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; border: 2px solid rgba(255,255,255,0.15); border-radius: 10px; background: rgba(255,255,255,0.08); color: var(--light); resize: vertical; }
+        .modal-wpp-drill-msg textarea:focus { outline: none; border-color: var(--secondary); }
+        .modal-wpp-drill-lista { flex: 1; overflow-y: auto; max-height: 200px; margin-bottom: 15px; }
+        .wpp-drill-item { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; border-left: 3px solid var(--primary); }
+        .wpp-drill-item.enviado { border-left-color: var(--success); background: rgba(39, 174, 96, 0.1); }
+        .wpp-drill-item .info { flex: 1; }
+        .wpp-drill-item .nome { font-weight: 600; font-size: 0.95rem; }
+        .wpp-drill-item .telefone { font-size: 0.8rem; opacity: 0.7; }
+        .wpp-drill-item .sem-tel { color: var(--danger); font-size: 0.8rem; }
+        .wpp-drill-item .status { display: flex; align-items: center; gap: 8px; }
+        .wpp-drill-item .check-enviado { color: var(--success); font-weight: bold; }
+        .wpp-drill-item button { padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: #25D366; color: white; transition: all 0.2s; }
+        .wpp-drill-item button:disabled { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); cursor: not-allowed; }
+        .wpp-drill-item button.enviado { background: rgba(39, 174, 96, 0.3); color: var(--success); }
+        .modal-wpp-drill-footer { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .modal-wpp-drill-footer button { padding: 12px 25px; font-size: 0.95rem; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; transition: all 0.3s; }
+        .btn-notificar-proximo { background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: white; }
+        .btn-notificar-proximo:hover { transform: scale(1.05); box-shadow: 0 5px 20px rgba(37, 211, 102, 0.4); }
+        .btn-limpar-enviados { background: rgba(255,255,255,0.1); color: var(--light); }
+        .btn-limpar-enviados:hover { background: rgba(255,255,255,0.2); }
     </style>
 </head>
 <body>
@@ -403,10 +439,40 @@
                 </div>
                 <div class="modal-detalhes-count" id="detalhesCount">0</div>
             </div>
+            <div class="modal-detalhes-actions">
+                <button class="btn-csv-detalhes" onclick="exportarCSVDetalhes()">📊 Exportar CSV</button>
+                <button class="btn-wpp-detalhes" onclick="abrirWhatsAppDetalhes()">📲 WhatsApp</button>
+            </div>
             <div class="modal-detalhes-lista" id="detalhesLista"></div>
             <button class="btn-voltar" onclick="fecharModal('modalDetalhes')">
                 ← Voltar
             </button>
+        </div>
+    </div>
+
+    <!-- Modal WhatsApp Drill-down -->
+    <div class="modal-overlay" id="modalWppDrill">
+        <div class="modal-content modal-wpp-drill">
+            <div class="modal-wpp-drill-header">
+                <div class="modal-wpp-drill-titulo">
+                    <h3>📲 Enviar WhatsApp - <span id="wppDrillCategoria"></span></h3>
+                </div>
+            </div>
+            <div class="modal-wpp-drill-stats">
+                <div class="stat">Total: <span id="wppDrillTotal">0</span></div>
+                <div class="stat">Com telefone: <span id="wppDrillComTel">0</span></div>
+                <div class="stat">Enviados: <span id="wppDrillEnviados">0</span></div>
+            </div>
+            <div class="modal-wpp-drill-msg">
+                <label>Mensagem (editável):</label>
+                <textarea id="wppDrillMensagem"></textarea>
+            </div>
+            <div class="modal-wpp-drill-lista" id="wppDrillLista"></div>
+            <div class="modal-wpp-drill-footer">
+                <button class="btn-limpar-enviados" onclick="limparEnviadosDrill()">🔄 Limpar Enviados</button>
+                <button class="btn-notificar-proximo" onclick="notificarProximoDrill()">📲 Notificar Próximo</button>
+                <button class="btn-voltar" onclick="voltarParaDetalhes()">← Voltar</button>
+            </div>
         </div>
     </div>
 
@@ -589,6 +655,9 @@
             // Ordenar por nome
             pessoas.sort((a, b) => a.nome.localeCompare(b.nome));
             
+            // Guardar dados para uso posterior (CSV e WhatsApp)
+            detalhesAtual = { tipo, valor, emoji, titulo, pessoas };
+            
             // Atualizar modal
             document.getElementById('detalhesEmoji').textContent = emoji;
             document.getElementById('detalhesTitulo').textContent = titulo;
@@ -611,6 +680,190 @@
             }
             
             // Mostrar modal
+            document.getElementById('modalDetalhes').classList.add('show');
+        }
+
+        // Variáveis globais para drill-down
+        let detalhesAtual = null;
+        let enviadosDrill = {};
+
+        // Calcular dias faltando para o evento
+        function calcularDiasFaltandoEvento() {
+            const evento = new Date('2026-01-24T08:00:00');
+            const hoje = new Date();
+            const diffMs = evento - hoje;
+            if (diffMs <= 0) return 0;
+            return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        }
+
+        // Exportar CSV dos detalhes atuais
+        function exportarCSVDetalhes() {
+            if (!detalhesAtual || detalhesAtual.pessoas.length === 0) {
+                showToast('Nenhum dado para exportar!', 'error');
+                return;
+            }
+            
+            let csv = 'Nome,WhatsApp,Ministério,Função,Comissões\n';
+            detalhesAtual.pessoas.forEach(p => {
+                csv += `"${p.nome}","${formatarTel(p.whatsapp)}","${p.ministerio || ''}","${p.funcao || ''}","${(p.comissoes || []).join('; ')}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `inscritos_${detalhesAtual.titulo.replace(/\s+/g, '_').toLowerCase()}.csv`;
+            link.click();
+            
+            showToast('CSV exportado!', 'success');
+        }
+
+        // Abrir modal de WhatsApp para os detalhes atuais
+        function abrirWhatsAppDetalhes() {
+            if (!detalhesAtual || detalhesAtual.pessoas.length === 0) {
+                showToast('Nenhuma pessoa para notificar!', 'error');
+                return;
+            }
+            
+            const diasFaltando = calcularDiasFaltandoEvento();
+            
+            // Mensagem padrão
+            const mensagemPadrao = `⚠️ *_Atenção_*
+🎉 _Novidades de nosso Encontro no dia 24/01_ 🎉
+
+Faltam ${diasFaltando} dias para nosso encontro, e gostaria de trazer atualizações para você, prezado(a) {funcao} {nome}, sendo que continuamos contando com sua oração e jejum para que tudo corra bem, a novidade de hoje é:
+
+.....
+
+Qualquer dúvida, estamos à disposição!
+Deus abençoe! 🙌
+*Comissão Organizadora*
+
+Igreja de Deus Águas Claras - IDAC`;
+            
+            document.getElementById('wppDrillCategoria').textContent = detalhesAtual.titulo;
+            document.getElementById('wppDrillMensagem').value = mensagemPadrao;
+            
+            // Inicializar enviados para esta categoria se não existir
+            const chave = `${detalhesAtual.tipo}_${detalhesAtual.valor}`;
+            if (!enviadosDrill[chave]) {
+                enviadosDrill[chave] = {};
+            }
+            
+            renderizarListaWppDrill();
+            
+            // Fechar modal detalhes e abrir modal WhatsApp
+            document.getElementById('modalDetalhes').classList.remove('show');
+            document.getElementById('modalWppDrill').classList.add('show');
+        }
+
+        // Renderizar lista de pessoas no modal WhatsApp
+        function renderizarListaWppDrill() {
+            if (!detalhesAtual) return;
+            
+            const chave = `${detalhesAtual.tipo}_${detalhesAtual.valor}`;
+            const lista = document.getElementById('wppDrillLista');
+            
+            let comTelefone = 0;
+            let enviados = 0;
+            
+            lista.innerHTML = detalhesAtual.pessoas.map((p, idx) => {
+                const temTel = p.whatsapp && p.whatsapp.length >= 10;
+                const foiEnviado = enviadosDrill[chave]?.[p.id];
+                
+                if (temTel) comTelefone++;
+                if (foiEnviado) enviados++;
+                
+                return `
+                    <div class="wpp-drill-item ${foiEnviado ? 'enviado' : ''}">
+                        <div class="info">
+                            <div class="nome">${p.nome}</div>
+                            ${temTel ? 
+                                `<div class="telefone">📱 ${formatarTel(p.whatsapp)}</div>` : 
+                                `<div class="sem-tel">⚠️ Sem telefone cadastrado</div>`
+                            }
+                        </div>
+                        <div class="status">
+                            ${foiEnviado ? '<span class="check-enviado">✓</span>' : ''}
+                            <button 
+                                onclick="enviarWhatsAppDrill('${p.id}')"
+                                ${!temTel ? 'disabled' : ''}
+                                class="${foiEnviado ? 'enviado' : ''}"
+                            >
+                                ${foiEnviado ? '✓ Enviado' : '📲'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Atualizar estatísticas
+            document.getElementById('wppDrillTotal').textContent = detalhesAtual.pessoas.length;
+            document.getElementById('wppDrillComTel').textContent = comTelefone;
+            document.getElementById('wppDrillEnviados').textContent = enviados;
+        }
+
+        // Enviar WhatsApp para uma pessoa específica
+        function enviarWhatsAppDrill(id) {
+            const pessoa = detalhesAtual.pessoas.find(p => p.id === id);
+            if (!pessoa || !pessoa.whatsapp) return;
+            
+            let telefone = pessoa.whatsapp.replace(/\D/g, '');
+            if (telefone.length === 11) telefone = '55' + telefone;
+            
+            // Gerar mensagem personalizada
+            let mensagem = document.getElementById('wppDrillMensagem').value;
+            mensagem = mensagem.replace(/{nome}/g, pessoa.nome.split(' ')[0]);
+            mensagem = mensagem.replace(/{funcao}/g, pessoa.funcao || '');
+            mensagem = mensagem.replace(/{ministerio}/g, pessoa.ministerio || '');
+            mensagem = mensagem.replace(/{comissoes}/g, (pessoa.comissoes || []).join(', '));
+            
+            const url = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
+            window.open(url, '_blank');
+            
+            // Marcar como enviado
+            const chave = `${detalhesAtual.tipo}_${detalhesAtual.valor}`;
+            if (!enviadosDrill[chave]) enviadosDrill[chave] = {};
+            enviadosDrill[chave][id] = true;
+            
+            // Atualizar lista
+            setTimeout(() => renderizarListaWppDrill(), 500);
+        }
+
+        // Notificar próximo não enviado
+        function notificarProximoDrill() {
+            if (!detalhesAtual) return;
+            
+            const chave = `${detalhesAtual.tipo}_${detalhesAtual.valor}`;
+            
+            // Encontrar próximo com telefone e não enviado
+            const proximo = detalhesAtual.pessoas.find(p => 
+                p.whatsapp && p.whatsapp.length >= 10 && !enviadosDrill[chave]?.[p.id]
+            );
+            
+            if (proximo) {
+                enviarWhatsAppDrill(proximo.id);
+            } else {
+                const semTel = detalhesAtual.pessoas.filter(p => !p.whatsapp || p.whatsapp.length < 10);
+                if (semTel.length > 0) {
+                    showToast(`Todos notificados! ${semTel.length} sem telefone.`, 'success');
+                } else {
+                    showToast('Todos já foram notificados! 🎉', 'success');
+                }
+            }
+        }
+
+        // Limpar marcações de enviados
+        function limparEnviadosDrill() {
+            if (!detalhesAtual) return;
+            const chave = `${detalhesAtual.tipo}_${detalhesAtual.valor}`;
+            enviadosDrill[chave] = {};
+            renderizarListaWppDrill();
+            showToast('Marcações limpas!', 'success');
+        }
+
+        // Voltar para modal de detalhes
+        function voltarParaDetalhes() {
+            document.getElementById('modalWppDrill').classList.remove('show');
             document.getElementById('modalDetalhes').classList.add('show');
         }
 
