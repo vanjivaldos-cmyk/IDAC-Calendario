@@ -726,16 +726,20 @@
             
             const diasFaltando = calcularDiasFaltandoEvento();
             
-            // Mensagem padrão
-            const mensagemPadrao = `⚠️ *_Atenção_*
-🎉 _Novidades de nosso Encontro no dia 24/01_ 🎉
+            // Mensagem padrão com emojis em Unicode
+            const emojiAtencao = '\u26A0\uFE0F'; // ⚠️
+            const emojiFesta = '\uD83C\uDF89'; // 🎉
+            const emojiMaos = '\uD83D\uDE4C'; // 🙌
+            
+            const mensagemPadrao = `${emojiAtencao} *_Atenção_*
+${emojiFesta} _Novidades de nosso Encontro no dia 24/01_ ${emojiFesta}
 
 Faltam ${diasFaltando} dias para nosso encontro, e gostaria de trazer atualizações para você, prezado(a) {funcao} {nome}, sendo que continuamos contando com sua oração e jejum para que tudo corra bem, a novidade de hoje é:
 
 .....
 
 Qualquer dúvida, estamos à disposição!
-Deus abençoe! 🙌
+Deus abençoe! ${emojiMaos}
 *Comissão Organizadora*
 
 Igreja de Deus Águas Claras - IDAC`;
