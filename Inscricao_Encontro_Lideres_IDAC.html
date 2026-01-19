@@ -356,6 +356,43 @@
                 </select>
             </div>
             <div class="form-group"><label>Função</label><input type="text" id="editFuncao"></div>
+            <div class="form-group">
+                <label>Comissões</label>
+                <div class="comissoes-grid">
+                    <div class="comissao-item">
+                        <input type="checkbox" id="edit_comissao_cafe" value="Café da Manhã">
+                        <label class="comissao-label" for="edit_comissao_cafe">
+                            <div class="comissao-checkbox"></div>
+                            <div class="comissao-icon">☕</div>
+                            <div><div class="comissao-name">Café da Manhã</div></div>
+                        </label>
+                    </div>
+                    <div class="comissao-item">
+                        <input type="checkbox" id="edit_comissao_almoco" value="Almoço">
+                        <label class="comissao-label" for="edit_comissao_almoco">
+                            <div class="comissao-checkbox"></div>
+                            <div class="comissao-icon">🍽️</div>
+                            <div><div class="comissao-name">Almoço</div></div>
+                        </label>
+                    </div>
+                    <div class="comissao-item">
+                        <input type="checkbox" id="edit_comissao_limpeza" value="Limpeza">
+                        <label class="comissao-label" for="edit_comissao_limpeza">
+                            <div class="comissao-checkbox"></div>
+                            <div class="comissao-icon">🧹</div>
+                            <div><div class="comissao-name">Limpeza</div></div>
+                        </label>
+                    </div>
+                    <div class="comissao-item">
+                        <input type="checkbox" id="edit_comissao_apoio" value="Apoio Administrativo">
+                        <label class="comissao-label" for="edit_comissao_apoio">
+                            <div class="comissao-checkbox"></div>
+                            <div class="comissao-icon">📋</div>
+                            <div><div class="comissao-name">Apoio Administrativo</div></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
             <div class="modal-edit-actions">
                 <button class="btn-cancel" onclick="fecharModal('modalEditar')">Cancelar</button>
                 <button class="btn-save" onclick="salvarEdicao()">💾 Salvar</button>
@@ -622,16 +659,33 @@
             document.getElementById('editWhatsapp').value = formatarTel(i.whatsapp);
             document.getElementById('editMinisterio').value = i.ministerio || '';
             document.getElementById('editFuncao').value = i.funcao || '';
+            
+            // Carregar comissões
+            const comissoes = i.comissoes || [];
+            document.getElementById('edit_comissao_cafe').checked = comissoes.includes('Café da Manhã');
+            document.getElementById('edit_comissao_almoco').checked = comissoes.includes('Almoço');
+            document.getElementById('edit_comissao_limpeza').checked = comissoes.includes('Limpeza');
+            document.getElementById('edit_comissao_apoio').checked = comissoes.includes('Apoio Administrativo');
+            
             document.getElementById('modalEditar').classList.add('show');
         }
 
         function salvarEdicao() {
             const id = document.getElementById('editId').value;
+            
+            // Coletar comissões selecionadas
+            const comissoes = [];
+            if (document.getElementById('edit_comissao_cafe').checked) comissoes.push('Café da Manhã');
+            if (document.getElementById('edit_comissao_almoco').checked) comissoes.push('Almoço');
+            if (document.getElementById('edit_comissao_limpeza').checked) comissoes.push('Limpeza');
+            if (document.getElementById('edit_comissao_apoio').checked) comissoes.push('Apoio Administrativo');
+            
             const novosDados = {
                 nome: document.getElementById('editNome').value.trim(),
                 whatsapp: document.getElementById('editWhatsapp').value.replace(/\D/g, ''),
                 ministerio: document.getElementById('editMinisterio').value,
-                funcao: document.getElementById('editFuncao').value.trim()
+                funcao: document.getElementById('editFuncao').value.trim(),
+                comissoes: comissoes
             };
             
             inscricoesRef.child(id).update(novosDados)
