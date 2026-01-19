@@ -604,8 +604,6 @@
         }
 
         function atualizarPainelAdmin() {
-            document.getElementById('totalInscritos').textContent = inscricoes.length;
-            
             // Contagem por comissão
             const cafe = inscricoes.filter(i => i.comissoes?.includes('Café da Manhã')).length;
             const almoco = inscricoes.filter(i => i.comissoes?.includes('Almoço')).length;
