@@ -209,6 +209,12 @@
                 <h3 class="admin-section-title">📋 Lista de Inscritos</h3>
                 <div class="inscricoes-lista" id="inscricoesLista"></div>
             </div>
+            <div style="margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                <span style="font-weight: 600; margin-right: 15px;">Status das Inscrições:</span>
+                <button id="btnToggleInscricoes" onclick="toggleInscricoes()" style="padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                    🔓 Abertas
+                </button>
+            </div>
             <div>
                 <button class="btn-export" onclick="exportarCSV()">📊 Exportar CSV</button>
                 <button class="btn-whatsapp-all" onclick="abrirModalMensagens()">📲 Enviar WhatsApp</button>
@@ -527,6 +533,9 @@
         const database = firebase.database();
         const inscricoesRef = database.ref('encontro_lideres_2026/inscricoes');
         const mensagensRef = database.ref('encontro_lideres_2026/mensagens_whatsapp');
+        const configRef = database.ref('encontro_lideres_2026/config');
+        
+        let inscricoesAbertas = true;
 
         let isAdmin = false;
         let inscricoes = [];
@@ -534,7 +543,7 @@
         const ministerios = ['Ação e Assistência Social', 'Candeias no Lar', 'Conselho Fiscal', 'Conselho Local', 'Ensino e EBD', 'Família', 'Homens', 'Infantil', 'Intercessão', 'Louvor & Artes', 'Melhor Idade', 'Missões e Evangelismo', 'Mulheres', 'Teens'];
         const funcoesBase = ['Co-Líder', 'Diácono(isa)', 'Evangelista', 'Líder', 'Pastor(a)', 'Presbítero'];
 
-        function init() { carregarInscricoes(); setupMascaraTelefone(); carregarMensagensSalvas(); }
+        function init() { carregarInscricoes(); setupMascaraTelefone(); carregarMensagensSalvas(); carregarStatusInscricoes(); }
 
         function setupMascaraTelefone() {
             document.querySelectorAll('input[type="tel"]').forEach(input => {
@@ -645,7 +654,20 @@
             // Lista de inscritos
             const lc = document.getElementById('inscricoesLista');
             if (inscricoes.length === 0) { lc.innerHTML = '<p style="text-align:center;opacity:0.6">Nenhuma inscrição.</p>'; return; }
-            lc.innerHTML = [...inscricoes].sort((a, b) => a.nome.localeCompare(b.nome)).map(i => '<div class="inscricao-item"><div class="inscricao-header"><div class="inscricao-nome">' + i.nome + '</div><div class="inscricao-actions"><button class="btn-wpp" onclick="enviarWhatsAppIndividual(\'' + i.id + '\')" title="WhatsApp">📲</button><button class="btn-edit" onclick="editarInscricao(\'' + i.id + '\')">✏️</button><button class="btn-delete" onclick="excluirInscricao(\'' + i.id + '\',\'' + i.nome.replace(/'/g, "\\'") + '\')">🗑️</button></div></div><div class="inscricao-info"><span>📱 ' + formatarTel(i.whatsapp) + '</span><span>⛪ ' + (i.ministerio || '-') + '</span><span>👔 ' + (i.funcao || '-') + '</span></div><div class="inscricao-comissoes">' + (i.comissoes || []).map(c => '<span class="inscricao-comissao-tag">' + c + '</span>').join('') + '</div></div>').join('');
+            lc.innerHTML = [...inscricoes].sort((a, b) => a.nome.localeCompare(b.nome)).map(i => {
+                const dataInsc = i.dataInscricao ? formatarDataHora(i.dataInscricao) : '-';
+                return '<div class="inscricao-item"><div class="inscricao-header"><div class="inscricao-nome">' + i.nome + '</div><div class="inscricao-actions"><button class="btn-wpp" onclick="enviarWhatsAppIndividual(\'' + i.id + '\')" title="WhatsApp">📲</button><button class="btn-edit" onclick="editarInscricao(\'' + i.id + '\')">✏️</button><button class="btn-delete" onclick="excluirInscricao(\'' + i.id + '\',\'' + i.nome.replace(/'/g, "\\'") + '\')">🗑️</button></div></div><div class="inscricao-info"><span>📱 ' + formatarTel(i.whatsapp) + '</span><span>⛪ ' + (i.ministerio || '-') + '</span><span>👔 ' + (i.funcao || '-') + '</span><span>📅 ' + dataInsc + '</span></div><div class="inscricao-comissoes">' + (i.comissoes || []).map(c => '<span class="inscricao-comissao-tag">' + c + '</span>').join('') + '</div></div>';
+            }).join('');
+        }
+
+        function formatarDataHora(dataISO) {
+            const d = new Date(dataISO);
+            const dia = String(d.getDate()).padStart(2, '0');
+            const mes = String(d.getMonth() + 1).padStart(2, '0');
+            const ano = d.getFullYear();
+            const hora = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            return `${dia}/${mes}/${ano} ${hora}:${min}`;
         }
 
         function formatarTel(t) { return t && t.length === 11 ? '(' + t.slice(0, 2) + ') ' + t.slice(2, 7) + '-' + t.slice(7) : t || ''; }
@@ -724,6 +746,70 @@
             });
         }
 
+        // Carregar status das inscrições do Firebase
+        function carregarStatusInscricoes() {
+            configRef.child('inscricoesAbertas').on('value', snap => {
+                inscricoesAbertas = snap.val() !== false; // default: true
+                atualizarBotaoToggleInscricoes();
+                atualizarFormularioInscricao();
+            });
+        }
+
+        // Alternar status das inscrições
+        function toggleInscricoes() {
+            const novoStatus = !inscricoesAbertas;
+            configRef.child('inscricoesAbertas').set(novoStatus)
+                .then(() => {
+                    showToast(novoStatus ? 'Inscrições ABERTAS!' : 'Inscrições FECHADAS!', 'success');
+                })
+                .catch(err => showToast('Erro: ' + err.message, 'error'));
+        }
+
+        // Atualizar visual do botão de toggle
+        function atualizarBotaoToggleInscricoes() {
+            const btn = document.getElementById('btnToggleInscricoes');
+            if (!btn) return;
+            
+            if (inscricoesAbertas) {
+                btn.innerHTML = '🔓 Abertas';
+                btn.style.background = '#27ae60';
+                btn.style.color = 'white';
+            } else {
+                btn.innerHTML = '🔒 Fechadas';
+                btn.style.background = '#e74c3c';
+                btn.style.color = 'white';
+            }
+        }
+
+        // Atualizar formulário baseado no status
+        function atualizarFormularioInscricao() {
+            const formCard = document.querySelector('.form-card');
+            const btnSubmit = document.getElementById('btnSubmit');
+            
+            if (!inscricoesAbertas) {
+                // Adicionar overlay de inscrições fechadas
+                let overlay = document.getElementById('inscricoesFechadasOverlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'inscricoesFechadasOverlay';
+                    overlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 20px; z-index: 10;';
+                    overlay.innerHTML = `
+                        <div style="font-size: 4rem; margin-bottom: 20px;">🔒</div>
+                        <h3 style="color: var(--secondary); font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 10px;">Inscrições Encerradas</h3>
+                        <p style="color: rgba(255,255,255,0.7); text-align: center; padding: 0 20px;">As inscrições para o Encontro de Líderes 2026 foram encerradas.<br>Obrigado pelo interesse!</p>
+                    `;
+                    formCard.style.position = 'relative';
+                    formCard.appendChild(overlay);
+                }
+                btnSubmit.disabled = true;
+            } else {
+                // Remover overlay se existir
+                const overlay = document.getElementById('inscricoesFechadasOverlay');
+                if (overlay) overlay.remove();
+                btnSubmit.disabled = false;
+            }
+        }
+
         function mostrarDetalhes(tipo, valor, emoji) {
             let pessoas = [];
             let titulo = '';
@@ -800,9 +886,10 @@
             }
             
             // Usar ponto e vírgula como separador (padrão brasileiro no Excel)
-            let csv = 'Nome;WhatsApp;Ministério;Função;Comissões\n';
+            let csv = 'Nome;WhatsApp;Ministério;Função;Comissões;Data;Hora\n';
             detalhesAtual.pessoas.forEach(p => {
-                csv += `"${p.nome}";"${formatarTel(p.whatsapp)}";"${p.ministerio || ''}";"${p.funcao || ''}";"${(p.comissoes || []).join(', ')}"\n`;
+                const dataHora = p.dataInscricao ? formatarDataHora(p.dataInscricao).split(' ') : ['-', '-'];
+                csv += `"${p.nome}";"${formatarTel(p.whatsapp)}";"${p.ministerio || ''}";"${p.funcao || ''}";"${(p.comissoes || []).join(', ')}";"${dataHora[0]}";"${dataHora[1] || '-'}"\n`;
             });
             
             // Adicionar BOM para UTF-8 (faz o Excel reconhecer acentos)
@@ -1062,8 +1149,11 @@ Igreja de Deus Águas Claras - IDAC`;
 
         function exportarCSV() {
             if (!inscricoes.length) { showToast('Nenhuma inscrição!', 'error'); return; }
-            let csv = 'Nome;WhatsApp;Ministério;Função;Comissões;Data\n';
-            inscricoes.forEach(i => csv += '"' + i.nome + '";"' + formatarTel(i.whatsapp) + '";"' + (i.ministerio||'') + '";"' + (i.funcao||'') + '";"' + (i.comissoes||[]).join(', ') + '";"' + new Date(i.dataInscricao).toLocaleDateString('pt-BR') + '"\n');
+            let csv = 'Nome;WhatsApp;Ministério;Função;Comissões;Data;Hora\n';
+            inscricoes.forEach(i => {
+                const dataHora = i.dataInscricao ? formatarDataHora(i.dataInscricao).split(' ') : ['-', '-'];
+                csv += '"' + i.nome + '";"' + formatarTel(i.whatsapp) + '";"' + (i.ministerio||'') + '";"' + (i.funcao||'') + '";"' + (i.comissoes||[]).join(', ') + '";"' + dataHora[0] + '";"' + (dataHora[1] || '-') + '"\n';
+            });
             const BOM = '\uFEFF';
             const b = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' }), l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'inscricoes_lideres_2026.csv'; l.click();
         }
