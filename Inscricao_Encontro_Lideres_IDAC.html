@@ -750,8 +750,12 @@
         function carregarStatusInscricoes() {
             configRef.child('inscricoesAbertas').on('value', snap => {
                 inscricoesAbertas = snap.val() !== false; // default: true
-                atualizarBotaoToggleInscricoes();
-                atualizarFormularioInscricao();
+                try {
+                    atualizarBotaoToggleInscricoes();
+                    atualizarFormularioInscricao();
+                } catch(e) {
+                    console.log('Erro ao atualizar status:', e);
+                }
             });
         }
 
@@ -785,6 +789,7 @@
         function atualizarFormularioInscricao() {
             const formCard = document.querySelector('.form-card');
             const btnSubmit = document.getElementById('btnSubmit');
+            if (!formCard || !btnSubmit) return;
             
             if (!inscricoesAbertas) {
                 // Adicionar overlay de inscrições fechadas
