@@ -719,12 +719,15 @@
                 return;
             }
             
-            let csv = 'Nome,WhatsApp,Ministério,Função,Comissões\n';
+            // Usar ponto e vírgula como separador (padrão brasileiro no Excel)
+            let csv = 'Nome;WhatsApp;Ministério;Função;Comissões\n';
             detalhesAtual.pessoas.forEach(p => {
-                csv += `"${p.nome}","${formatarTel(p.whatsapp)}","${p.ministerio || ''}","${p.funcao || ''}","${(p.comissoes || []).join('; ')}"\n`;
+                csv += `"${p.nome}";"${formatarTel(p.whatsapp)}";"${p.ministerio || ''}";"${p.funcao || ''}";"${(p.comissoes || []).join(', ')}"\n`;
             });
             
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            // Adicionar BOM para UTF-8 (faz o Excel reconhecer acentos)
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = `inscritos_${detalhesAtual.titulo.replace(/\s+/g, '_').toLowerCase()}.csv`;
@@ -979,9 +982,10 @@ Igreja de Deus Águas Claras - IDAC`;
 
         function exportarCSV() {
             if (!inscricoes.length) { showToast('Nenhuma inscrição!', 'error'); return; }
-            let csv = 'Nome,WhatsApp,Ministério,Função,Comissões,Data\n';
-            inscricoes.forEach(i => csv += '"' + i.nome + '","' + formatarTel(i.whatsapp) + '","' + (i.ministerio||'') + '","' + (i.funcao||'') + '","' + (i.comissoes||[]).join('; ') + '","' + new Date(i.dataInscricao).toLocaleDateString('pt-BR') + '"\n');
-            const b = new Blob([csv], { type: 'text/csv;charset=utf-8;' }), l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'inscricoes_lideres_2026.csv'; l.click();
+            let csv = 'Nome;WhatsApp;Ministério;Função;Comissões;Data\n';
+            inscricoes.forEach(i => csv += '"' + i.nome + '";"' + formatarTel(i.whatsapp) + '";"' + (i.ministerio||'') + '";"' + (i.funcao||'') + '";"' + (i.comissoes||[]).join(', ') + '";"' + new Date(i.dataInscricao).toLocaleDateString('pt-BR') + '"\n');
+            const BOM = '\uFEFF';
+            const b = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' }), l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'inscricoes_lideres_2026.csv'; l.click();
         }
 
         function copiarNumeros() { if (!inscricoes.length) { showToast('Nenhuma inscrição!', 'error'); return; } navigator.clipboard.writeText(inscricoes.map(i => '55' + i.whatsapp).join('\n')).then(() => showToast(inscricoes.length + ' números copiados!', 'success')); }
