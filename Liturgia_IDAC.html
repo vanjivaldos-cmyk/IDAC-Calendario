@@ -237,6 +237,156 @@
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
         
+        /* Estatísticas Dashboard */
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .stat-card .stat-label {
+            color: #a0a0a0;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        .stat-card.verde .stat-value { color: #22c55e; }
+        .stat-card.vermelho .stat-value { color: #ef4444; }
+        .stat-card.azul .stat-value { color: #3b82f6; }
+        .stat-card.roxo .stat-value { color: #8b5cf6; }
+        
+        /* Tabela de Ranking */
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .ranking-table th {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            padding: 10px;
+            text-align: left;
+        }
+        .ranking-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .ranking-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .badge-taxa {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .badge-taxa.verde { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .badge-taxa.amarelo { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .badge-taxa.vermelho { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        
+        /* Cumprimento */
+        .cumprimento-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .cumprimento-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        .cumprimento-item .info {
+            flex: 1;
+        }
+        .cumprimento-item .nome {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .cumprimento-item .atividade {
+            color: #a0a0a0;
+            font-size: 0.85rem;
+        }
+        .cumprimento-toggle {
+            display: flex;
+            gap: 8px;
+        }
+        .cumprimento-toggle button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            opacity: 0.6;
+        }
+        .cumprimento-toggle button.active {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        .cumprimento-toggle .btn-sim {
+            background: #22c55e;
+            color: white;
+        }
+        .cumprimento-toggle .btn-nao {
+            background: #ef4444;
+            color: white;
+        }
+        .cumprimento-toggle .btn-pendente {
+            background: #6b7280;
+            color: white;
+        }
+        
+        /* Filtros período */
+        .filtro-periodo {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .filtro-periodo label {
+            color: #a0a0a0;
+            font-size: 0.85rem;
+        }
+        .filtro-periodo select,
+        .filtro-periodo input {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .filtro-periodo button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
         /* Impressão */
         @media print {
             @page {
@@ -674,6 +824,8 @@
             <button class="btn-print" onclick="abrirImpressao()">🖨️ Imprimir / PDF</button>
             <button class="btn-template admin-only" style="background: #25d366;" onclick="abrirModalNotificacoes()">📲 Notificar</button>
             <button class="btn-template admin-only" style="background: #0ea5e9;" onclick="abrirModalContatos()">👥 Contatos</button>
+            <button class="btn-template admin-only" style="background: #ec4899;" onclick="abrirModalEstatisticas()">📊 Estatísticas</button>
+            <button class="btn-template admin-only" style="background: #14b8a6;" onclick="abrirModalCumprimento()">✅ Cumprimento</button>
             <button class="btn-clear admin-only" onclick="limparLiturgia()">🗑️ Limpar</button>
             <button class="btn-admin" id="adminBtn" onclick="toggleAdmin()">🔐 Admin</button>
         </div>
@@ -860,6 +1012,125 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
             </div>
             
             <button class="btn-salvar-contatos" onclick="salvarModelos()">💾 Salvar Modelos</button>
+        </div>
+    </div>
+
+    <!-- Modal de Estatísticas -->
+    <div class="modal-overlay" id="modalEstatisticas">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>📊 Estatísticas de Participação</h2>
+                <button class="modal-close" onclick="fecharModal('modalEstatisticas')">×</button>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="filtro-periodo">
+                <label>Período:</label>
+                <select id="filtroMes" onchange="carregarEstatisticas()">
+                    <option value="">Todos</option>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+                <select id="filtroAno" onchange="carregarEstatisticas()">
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                </select>
+                <button onclick="carregarEstatisticas()">🔄 Atualizar</button>
+                <button onclick="exportarEstatisticasPDF()" style="background: #ef4444;">📄 Exportar PDF</button>
+            </div>
+            
+            <!-- Dashboard Cards -->
+            <div class="stats-dashboard" id="statsDashboard">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotalLiturgias">0</div>
+                    <div class="stat-label">Total de Liturgias</div>
+                </div>
+                <div class="stat-card verde">
+                    <div class="stat-value" id="statTotalCumpridos">0</div>
+                    <div class="stat-label">Cumpridos</div>
+                </div>
+                <div class="stat-card vermelho">
+                    <div class="stat-value" id="statTotalAusencias">0</div>
+                    <div class="stat-label">Ausências</div>
+                </div>
+                <div class="stat-card azul">
+                    <div class="stat-value" id="statTaxaGeral">0%</div>
+                    <div class="stat-label">Taxa Geral</div>
+                </div>
+            </div>
+            
+            <!-- Ranking de Participação -->
+            <h4 style="color: #ffd700; margin-bottom: 15px;">🏆 Ranking de Participação</h4>
+            <div style="max-height: 350px; overflow-y: auto;">
+                <table class="ranking-table" id="rankingTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Responsável</th>
+                            <th>Escalado</th>
+                            <th>Cumpriu</th>
+                            <th>Ausências</th>
+                            <th>Taxa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rankingBody">
+                        <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cumprimento -->
+    <div class="modal-overlay" id="modalCumprimento">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✅ Marcar Cumprimento da Escala</h2>
+                <button class="modal-close" onclick="fecharModal('modalCumprimento')">×</button>
+            </div>
+            
+            <div id="infoCultoCumprimento" style="text-align: center; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 10px; margin-bottom: 15px;">
+                <span style="color: #ffd700; font-weight: bold;">Selecione uma liturgia para marcar o cumprimento</span>
+            </div>
+            
+            <!-- Resumo rápido -->
+            <div class="stats-dashboard" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 15px;">
+                <div class="stat-card verde" style="padding: 10px;">
+                    <div class="stat-value" style="font-size: 1.5rem;" id="cumprimentoSim">0</div>
+                    <div class="stat-label">Cumpriram ✅</div>
+                </div>
+                <div class="stat-card vermelho" style="padding: 10px;">
+                    <div class="stat-value" style="font-size: 1.5rem;" id="cumprimentoNao">0</div>
+                    <div class="stat-label">Ausentes ❌</div>
+                </div>
+                <div class="stat-card" style="padding: 10px;">
+                    <div class="stat-value" style="font-size: 1.5rem;" id="cumprimentoPendente">0</div>
+                    <div class="stat-label">Pendentes ⏳</div>
+                </div>
+            </div>
+            
+            <!-- Ações rápidas -->
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button onclick="marcarTodosCumprimento('sim')" style="flex: 1; padding: 10px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">✅ Todos Cumpriram</button>
+                <button onclick="marcarTodosCumprimento('pendente')" style="flex: 1; padding: 10px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">🔄 Resetar</button>
+            </div>
+            
+            <!-- Lista de escalados para marcar cumprimento -->
+            <div class="cumprimento-list" id="cumprimentoList">
+                <!-- Preenchido via JS -->
+            </div>
+            
+            <button class="btn-salvar-contatos" onclick="salvarCumprimento()">💾 Salvar Cumprimento</button>
         </div>
     </div>
 
@@ -2620,6 +2891,408 @@ _Igreja de Deus Águas Claras - IDAC_`
                 .catch(err => {
                     showToast('Erro ao salvar modelos: ' + err.message, true);
                 });
+        }
+
+        // ========================================
+        // SISTEMA DE ESTATÍSTICAS E CUMPRIMENTO
+        // ========================================
+        
+        // Referência Firebase para cumprimentos
+        const cumprimentosRef = database.ref('liturgias_cumprimento');
+        
+        // Cache de cumprimentos
+        let cumprimentosCache = {};
+        
+        // Carregar cumprimentos do Firebase
+        function carregarCumprimentos() {
+            cumprimentosRef.once('value').then(snapshot => {
+                cumprimentosCache = snapshot.val() || {};
+                console.log('Cumprimentos carregados:', Object.keys(cumprimentosCache).length);
+            }).catch(err => {
+                console.log('Erro ao carregar cumprimentos:', err);
+            });
+        }
+        
+        // Carregar ao iniciar
+        carregarCumprimentos();
+        
+        // Abrir modal de estatísticas
+        function abrirModalEstatisticas() {
+            if (!isAdmin) {
+                showToast('Apenas administradores podem ver estatísticas!', true);
+                return;
+            }
+            
+            // Definir mês atual como padrão
+            const hoje = new Date();
+            document.getElementById('filtroMes').value = hoje.getMonth() + 1;
+            document.getElementById('filtroAno').value = hoje.getFullYear();
+            
+            carregarEstatisticas();
+            document.getElementById('modalEstatisticas').classList.add('active');
+        }
+        
+        // Carregar estatísticas do Firebase
+        function carregarEstatisticas() {
+            const mes = document.getElementById('filtroMes').value;
+            const ano = document.getElementById('filtroAno').value;
+            
+            // Buscar todas as liturgias
+            liturgiaRef.once('value').then(snapshot => {
+                const liturgias = snapshot.val() || {};
+                
+                // Filtrar por período
+                const liturgiasFiltradas = Object.entries(liturgias).filter(([chave, liturgia]) => {
+                    if (!liturgia.data) return false;
+                    const dataLiturgia = new Date(liturgia.data + 'T12:00:00');
+                    
+                    if (mes && dataLiturgia.getMonth() + 1 !== parseInt(mes)) return false;
+                    if (ano && dataLiturgia.getFullYear() !== parseInt(ano)) return false;
+                    
+                    return true;
+                });
+                
+                // Processar estatísticas
+                processarEstatisticas(liturgiasFiltradas);
+            }).catch(err => {
+                showToast('Erro ao carregar estatísticas: ' + err.message, true);
+            });
+        }
+        
+        // Processar e exibir estatísticas
+        function processarEstatisticas(liturgias) {
+            const estatisticas = {};
+            let totalLiturgias = liturgias.length;
+            let totalCumpridos = 0;
+            let totalAusencias = 0;
+            let totalPendentes = 0;
+            
+            // Processar cada liturgia
+            liturgias.forEach(([chave, liturgia]) => {
+                const cumprimento = cumprimentosCache[chave] || {};
+                
+                // Para cada item da liturgia
+                (liturgia.itens || []).forEach((item, index) => {
+                    const responsavel = item.responsavel;
+                    if (!responsavel || responsavel.startsWith('---') || responsavel === 'Outro...' || responsavel === '') return;
+                    
+                    // Inicializar estatísticas do responsável
+                    if (!estatisticas[responsavel]) {
+                        estatisticas[responsavel] = {
+                            nome: responsavel,
+                            escalado: 0,
+                            cumpriu: 0,
+                            ausente: 0,
+                            pendente: 0
+                        };
+                    }
+                    
+                    estatisticas[responsavel].escalado++;
+                    
+                    // Verificar cumprimento
+                    const statusItem = cumprimento[`item_${index}`];
+                    if (statusItem === 'sim') {
+                        estatisticas[responsavel].cumpriu++;
+                        totalCumpridos++;
+                    } else if (statusItem === 'nao') {
+                        estatisticas[responsavel].ausente++;
+                        totalAusencias++;
+                    } else {
+                        estatisticas[responsavel].pendente++;
+                        totalPendentes++;
+                    }
+                });
+            });
+            
+            // Atualizar dashboard
+            document.getElementById('statTotalLiturgias').textContent = totalLiturgias;
+            document.getElementById('statTotalCumpridos').textContent = totalCumpridos;
+            document.getElementById('statTotalAusencias').textContent = totalAusencias;
+            
+            const total = totalCumpridos + totalAusencias;
+            const taxaGeral = total > 0 ? Math.round((totalCumpridos / total) * 100) : 0;
+            document.getElementById('statTaxaGeral').textContent = taxaGeral + '%';
+            
+            // Renderizar ranking
+            renderizarRanking(estatisticas);
+        }
+        
+        // Renderizar tabela de ranking
+        function renderizarRanking(estatisticas) {
+            const tbody = document.getElementById('rankingBody');
+            
+            // Converter para array e ordenar por escalado
+            const ranking = Object.values(estatisticas)
+                .sort((a, b) => b.escalado - a.escalado);
+            
+            if (ranking.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #a0a0a0;">Nenhum dado encontrado no período</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = ranking.map((pessoa, index) => {
+                const totalAvaliado = pessoa.cumpriu + pessoa.ausente;
+                const taxa = totalAvaliado > 0 ? Math.round((pessoa.cumpriu / totalAvaliado) * 100) : null;
+                
+                let badgeClass = 'verde';
+                if (taxa !== null) {
+                    if (taxa < 50) badgeClass = 'vermelho';
+                    else if (taxa < 80) badgeClass = 'amarelo';
+                }
+                
+                const taxaDisplay = taxa !== null ? `<span class="badge-taxa ${badgeClass}">${taxa}%</span>` : '<span style="color: #6b7280;">-</span>';
+                
+                return `
+                    <tr>
+                        <td style="color: #ffd700; font-weight: bold;">${index + 1}º</td>
+                        <td>${pessoa.nome}</td>
+                        <td style="text-align: center;">${pessoa.escalado}</td>
+                        <td style="text-align: center; color: #22c55e;">${pessoa.cumpriu}</td>
+                        <td style="text-align: center; color: #ef4444;">${pessoa.ausente}</td>
+                        <td style="text-align: center;">${taxaDisplay}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // Abrir modal de cumprimento
+        function abrirModalCumprimento() {
+            if (!isAdmin) {
+                showToast('Apenas administradores podem marcar cumprimento!', true);
+                return;
+            }
+            
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            
+            if (!data) {
+                showToast('Selecione uma data primeiro!', true);
+                return;
+            }
+            
+            if (liturgiaItens.length === 0) {
+                showToast('Carregue uma liturgia primeiro!', true);
+                return;
+            }
+            
+            // Atualizar info do culto
+            const dataObj = new Date(data + 'T12:00:00');
+            const dataFormatada = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+            document.getElementById('infoCultoCumprimento').innerHTML = `
+                <div style="color: #ffd700; font-weight: bold; font-size: 1.1rem;">📅 ${dataFormatada}</div>
+                <div style="color: #a0a0a0;">⛪ ${tipo}</div>
+            `;
+            
+            renderizarListaCumprimento();
+            document.getElementById('modalCumprimento').classList.add('active');
+        }
+        
+        // Renderizar lista de cumprimento
+        function renderizarListaCumprimento() {
+            const container = document.getElementById('cumprimentoList');
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const horaInicio = document.getElementById('horaInicio').value;
+            const chave = `${data}_${tipo.replace(/\s/g, '_')}`;
+            
+            // Carregar cumprimento salvo
+            const cumprimentoSalvo = cumprimentosCache[chave] || {};
+            
+            // Calcular horários
+            let [horas, minutos] = horaInicio.split(':').map(Number);
+            
+            let countSim = 0, countNao = 0, countPendente = 0;
+            
+            const itensHTML = liturgiaItens.map((item, index) => {
+                if (!item.responsavel || item.responsavel.startsWith('---') || item.responsavel === 'Outro...' || item.responsavel === '') {
+                    minutos += item.duracao || 0;
+                    while (minutos >= 60) { minutos -= 60; horas++; }
+                    return '';
+                }
+                
+                const horaAtual = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+                const status = cumprimentoSalvo[`item_${index}`] || 'pendente';
+                
+                if (status === 'sim') countSim++;
+                else if (status === 'nao') countNao++;
+                else countPendente++;
+                
+                minutos += item.duracao || 0;
+                while (minutos >= 60) { minutos -= 60; horas++; }
+                
+                return `
+                    <div class="cumprimento-item" data-index="${index}">
+                        <div class="info">
+                            <div class="nome">${item.responsavel}</div>
+                            <div class="atividade">⏰ ${horaAtual} - ${item.atividade}</div>
+                        </div>
+                        <div class="cumprimento-toggle">
+                            <button class="btn-sim ${status === 'sim' ? 'active' : ''}" onclick="toggleCumprimento(${index}, 'sim')">✅</button>
+                            <button class="btn-nao ${status === 'nao' ? 'active' : ''}" onclick="toggleCumprimento(${index}, 'nao')">❌</button>
+                            <button class="btn-pendente ${status === 'pendente' ? 'active' : ''}" onclick="toggleCumprimento(${index}, 'pendente')">⏳</button>
+                        </div>
+                    </div>
+                `;
+            }).filter(html => html !== '').join('');
+            
+            container.innerHTML = itensHTML || '<p style="text-align: center; color: #a0a0a0;">Nenhum responsável na liturgia</p>';
+            
+            // Atualizar contadores
+            document.getElementById('cumprimentoSim').textContent = countSim;
+            document.getElementById('cumprimentoNao').textContent = countNao;
+            document.getElementById('cumprimentoPendente').textContent = countPendente;
+        }
+        
+        // Toggle status de cumprimento
+        function toggleCumprimento(index, status) {
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const chave = `${data}_${tipo.replace(/\s/g, '_')}`;
+            
+            // Atualizar cache local
+            if (!cumprimentosCache[chave]) {
+                cumprimentosCache[chave] = {};
+            }
+            cumprimentosCache[chave][`item_${index}`] = status;
+            
+            // Atualizar visual
+            const item = document.querySelector(`.cumprimento-item[data-index="${index}"]`);
+            if (item) {
+                item.querySelectorAll('.cumprimento-toggle button').forEach(btn => btn.classList.remove('active'));
+                item.querySelector(`.btn-${status === 'sim' ? 'sim' : status === 'nao' ? 'nao' : 'pendente'}`).classList.add('active');
+            }
+            
+            // Atualizar contadores
+            atualizarContadoresCumprimento();
+        }
+        
+        // Marcar todos com um status
+        function marcarTodosCumprimento(status) {
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const chave = `${data}_${tipo.replace(/\s/g, '_')}`;
+            
+            if (!cumprimentosCache[chave]) {
+                cumprimentosCache[chave] = {};
+            }
+            
+            liturgiaItens.forEach((item, index) => {
+                if (item.responsavel && !item.responsavel.startsWith('---') && item.responsavel !== 'Outro...' && item.responsavel !== '') {
+                    cumprimentosCache[chave][`item_${index}`] = status;
+                }
+            });
+            
+            renderizarListaCumprimento();
+            showToast(status === 'sim' ? 'Todos marcados como cumpridos!' : 'Status resetado para pendente!');
+        }
+        
+        // Atualizar contadores
+        function atualizarContadoresCumprimento() {
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const chave = `${data}_${tipo.replace(/\s/g, '_')}`;
+            const cumprimento = cumprimentosCache[chave] || {};
+            
+            let countSim = 0, countNao = 0, countPendente = 0;
+            
+            liturgiaItens.forEach((item, index) => {
+                if (!item.responsavel || item.responsavel.startsWith('---') || item.responsavel === 'Outro...' || item.responsavel === '') return;
+                
+                const status = cumprimento[`item_${index}`] || 'pendente';
+                if (status === 'sim') countSim++;
+                else if (status === 'nao') countNao++;
+                else countPendente++;
+            });
+            
+            document.getElementById('cumprimentoSim').textContent = countSim;
+            document.getElementById('cumprimentoNao').textContent = countNao;
+            document.getElementById('cumprimentoPendente').textContent = countPendente;
+        }
+        
+        // Salvar cumprimento no Firebase
+        function salvarCumprimento() {
+            const data = document.getElementById('dataCulto').value;
+            const tipo = document.getElementById('tipoCulto').value;
+            const chave = `${data}_${tipo.replace(/\s/g, '_')}`;
+            
+            const cumprimento = cumprimentosCache[chave] || {};
+            
+            cumprimentosRef.child(chave).set(cumprimento)
+                .then(() => {
+                    showToast('Cumprimento salvo com sucesso!');
+                })
+                .catch(err => {
+                    showToast('Erro ao salvar: ' + err.message, true);
+                });
+        }
+        
+        // Exportar estatísticas em PDF
+        function exportarEstatisticasPDF() {
+            const mes = document.getElementById('filtroMes').value;
+            const ano = document.getElementById('filtroAno').value;
+            const meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            const periodo = mes ? `${meses[parseInt(mes)]}/${ano}` : `Ano ${ano}`;
+            
+            const totalLiturgias = document.getElementById('statTotalLiturgias').textContent;
+            const totalCumpridos = document.getElementById('statTotalCumpridos').textContent;
+            const totalAusencias = document.getElementById('statTotalAusencias').textContent;
+            const taxaGeral = document.getElementById('statTaxaGeral').textContent;
+            
+            // Capturar tabela de ranking
+            const rankingTable = document.getElementById('rankingTable').outerHTML;
+            
+            const pdfContent = document.createElement('div');
+            pdfContent.style.width = '210mm';
+            pdfContent.style.padding = '15mm';
+            pdfContent.style.backgroundColor = '#1a1a2e';
+            pdfContent.style.fontFamily = 'Arial, sans-serif';
+            pdfContent.style.color = '#fff';
+            
+            pdfContent.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="font-size: 20px; color: #ffd700; margin: 5px 0;">📊 Relatório de Estatísticas - IDAC</h1>
+                    <p style="font-size: 14px; color: #a0a0a0; margin: 0;">Período: ${periodo}</p>
+                </div>
+                
+                <div style="display: flex; justify-content: space-around; margin-bottom: 20px; text-align: center;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px 25px; border-radius: 10px;">
+                        <div style="font-size: 24px; color: #ffd700; font-weight: bold;">${totalLiturgias}</div>
+                        <div style="font-size: 12px; color: #a0a0a0;">Liturgias</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px 25px; border-radius: 10px;">
+                        <div style="font-size: 24px; color: #22c55e; font-weight: bold;">${totalCumpridos}</div>
+                        <div style="font-size: 12px; color: #a0a0a0;">Cumpridos</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px 25px; border-radius: 10px;">
+                        <div style="font-size: 24px; color: #ef4444; font-weight: bold;">${totalAusencias}</div>
+                        <div style="font-size: 12px; color: #a0a0a0;">Ausências</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px 25px; border-radius: 10px;">
+                        <div style="font-size: 24px; color: #3b82f6; font-weight: bold;">${taxaGeral}</div>
+                        <div style="font-size: 12px; color: #a0a0a0;">Taxa Geral</div>
+                    </div>
+                </div>
+                
+                <h3 style="color: #ffd700; margin-bottom: 10px;">🏆 Ranking de Participação</h3>
+                <div style="font-size: 11px;">
+                    ${rankingTable}
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px; font-size: 9px; color: #555;">
+                    Gerado em ${new Date().toLocaleString('pt-BR')} | Igreja de Deus Águas Claras
+                </div>
+            `;
+            
+            const opt = {
+                margin: 10,
+                filename: `Estatisticas_IDAC_${periodo.replace('/', '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: { scale: 2, backgroundColor: '#1a1a2e' },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(pdfContent).save();
+            showToast('PDF gerado com sucesso!');
         }
     </script>
 </body>
