@@ -745,6 +745,51 @@
             transition: all 0.2s;
             letter-spacing: 0.5px;
         }
+        /* Checkbox multi — oculto no desktop, visível só no mobile */
+        .sidebar-multi-check {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .months-sidebar, .months-sidebar-list {
+                width: 64px;
+            }
+            .sidebar-month-btn, .sidebar-month-btn-list {
+                padding: 8px 2px;
+                font-size: 0.72rem;
+                position: relative;
+            }
+            /* Checkbox visível no mobile */
+            .sidebar-multi-check {
+                display: block;
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                width: 14px;
+                height: 14px;
+                accent-color: #ffd700;
+                cursor: pointer;
+                z-index: 2;
+            }
+            /* Quando checkbox marcado = estilo de ativo */
+            .sidebar-month-btn.active .sidebar-multi-check,
+            .sidebar-month-btn-list.active-list .sidebar-multi-check-list {
+                accent-color: #ffd700;
+            }
+            /* Label do checkbox cobre o botão inteiro */
+            .sidebar-check-label {
+                display: block;
+                position: absolute;
+                inset: 0;
+                cursor: pointer;
+            }
+        }
+        /* Desktop: esconder checkbox */
+        @media (min-width: 769px) {
+            .sidebar-multi-check,
+            .sidebar-multi-check-list {
+                display: none !important;
+            }
+        }
         .sidebar-month-btn:last-child { border-bottom: none; }
         .sidebar-month-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .sidebar-month-btn.active {
@@ -1199,7 +1244,7 @@
     <div class="calendar-wrapper">
         <nav class="months-sidebar" id="monthsSidebar">
             <div style="font-size:0.55rem;color:#a0a0a0;text-align:center;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,0.1);line-height:1.3;">
-                <span title="Ctrl+clique ou toque longo para ver vários meses">3x<br>multi</span>
+                <span title="Ctrl+clique ou toque longo para ver vários meses">☑ multi</span>
             </div>
         </nav>
         <div class="calendar-container" id="calendar"></div>
@@ -1227,7 +1272,7 @@
     <div class="list-wrapper">
         <nav class="months-sidebar-list" id="monthsSidebarList">
             <div style="font-size:0.55rem;color:#a0a0a0;text-align:center;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,0.1);line-height:1.3;">
-                <span title="Ctrl+clique ou toque longo para ver várias listas">3x<br>multi</span>
+                <span title="Ctrl+clique ou toque longo para ver várias listas">☑ multi</span>
             </div>
         </nav>
         <div class="events-list-panel">
@@ -1804,11 +1849,19 @@
                 if (card) card.classList.add('active-panel');
             });
 
-            // Atualizar sidebar
-            document.querySelectorAll('.sidebar-month-btn').forEach(b => b.classList.remove('active'));
+            // Atualizar sidebar + sincronizar checkboxes mobile
+            document.querySelectorAll('.sidebar-month-btn').forEach(b => {
+                b.classList.remove('active');
+                const chk = b.querySelector('.sidebar-multi-check');
+                if (chk) chk.checked = false;
+            });
             activeMonths.forEach(m => {
                 const btn = document.getElementById('sidebar-btn-' + m);
-                if (btn) btn.classList.add('active');
+                if (btn) {
+                    btn.classList.add('active');
+                    const chk = btn.querySelector('.sidebar-multi-check');
+                    if (chk) chk.checked = true;
+                }
             });
 
             // 1=sem grid | 2=2 colunas | 3+=3 colunas com quebra de linha
@@ -1853,11 +1906,19 @@
                 if (panel) panel.classList.add('active-list-panel');
             });
 
-            // Atualizar sidebar
-            document.querySelectorAll('.sidebar-month-btn-list').forEach(b => b.classList.remove('active-list'));
+            // Atualizar sidebar + sincronizar checkboxes mobile
+            document.querySelectorAll('.sidebar-month-btn-list').forEach(b => {
+                b.classList.remove('active-list');
+                const chk = b.querySelector('.sidebar-multi-check-list');
+                if (chk) chk.checked = false;
+            });
             activeListMonths.forEach(mk => {
                 const btn = document.getElementById('list-btn-' + mk);
-                if (btn) btn.classList.add('active-list');
+                if (btn) {
+                    btn.classList.add('active-list');
+                    const chk = btn.querySelector('.sidebar-multi-check-list');
+                    if (chk) chk.checked = true;
+                }
             });
 
             // Aplicar classe grid direto no .events-by-month
@@ -1901,25 +1962,7 @@
                 btn.className = 'sidebar-month-btn';
                 btn.id = 'sidebar-btn-' + month;
                 if (isPastMonth(month)) btn.classList.add('past');
-                // Clique simples = mês único | Triplo clique = multi (mobile e desktop)
-                let _clickCount = 0, _clickTimer = null;
-                btn.addEventListener('click', (e) => {
-                    _clickCount++;
-                    if (_clickCount === 1) {
-                        _clickTimer = setTimeout(() => {
-                            _clickCount = 0;
-                            activateMonth(month, e.ctrlKey || e.metaKey); // clique simples
-                        }, 300);
-                    } else if (_clickCount === 3) {
-                        clearTimeout(_clickTimer);
-                        _clickCount = 0;
-                        activateMonth(month, true); // triplo clique = multi
-                        if (navigator.vibrate) navigator.vibrate(50);
-                    } else if (_clickCount > 3) {
-                        clearTimeout(_clickTimer);
-                        _clickCount = 0;
-                    }
-                });
+                btn.onclick = (e) => activateMonth(month, e.ctrlKey || e.metaKey);
 
                 // Abreviação + dots de eventos
                 const monthKey = '2026-' + String(month+1).padStart(2,'0');
@@ -1943,6 +1986,16 @@
                     '</div>';
                 }
                 btn.innerHTML = monthAbbr[month] + dotsHtml;
+                // Checkbox para multi-seleção no mobile
+                const chk = document.createElement('input');
+                chk.type = 'checkbox';
+                chk.className = 'sidebar-multi-check';
+                chk.title = 'Selecionar para comparar';
+                chk.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    activateMonth(month, true); // sempre multi ao usar checkbox
+                });
+                btn.appendChild(chk);
                 sidebar.appendChild(btn);
 
                 if (isCurrentMonth(month)) defaultMonth = month;
@@ -2356,26 +2409,18 @@
                     const btn = document.createElement('button');
                     btn.className = 'sidebar-month-btn-list' + (isPast ? ' past-list' : '');
                     btn.id = 'list-btn-' + mk;
-                    // Clique simples = mês único | Triplo clique = multi (mobile e desktop)
-                    let _clickCountL = 0, _clickTimerL = null;
-                    btn.addEventListener('click', (e) => {
-                        _clickCountL++;
-                        if (_clickCountL === 1) {
-                            _clickTimerL = setTimeout(() => {
-                                _clickCountL = 0;
-                                activateListMonth(mk, e.ctrlKey || e.metaKey); // clique simples
-                            }, 300);
-                        } else if (_clickCountL === 3) {
-                            clearTimeout(_clickTimerL);
-                            _clickCountL = 0;
-                            activateListMonth(mk, true); // triplo clique = multi
-                            if (navigator.vibrate) navigator.vibrate(50);
-                        } else if (_clickCountL > 3) {
-                            clearTimeout(_clickTimerL);
-                            _clickCountL = 0;
-                        }
-                    });
+                    btn.onclick = (e) => activateListMonth(mk, e.ctrlKey || e.metaKey);
                     btn.innerHTML = abbr + '<br><span class="evt-count-badge">' + eventsByMonth[mk].length + '</span>';
+                    // Checkbox para multi-seleção no mobile
+                    const chkL = document.createElement('input');
+                    chkL.type = 'checkbox';
+                    chkL.className = 'sidebar-multi-check sidebar-multi-check-list';
+                    chkL.title = 'Selecionar para comparar';
+                    chkL.addEventListener('change', (e) => {
+                        e.stopPropagation();
+                        activateListMonth(mk, true); // sempre multi ao usar checkbox
+                    });
+                    btn.appendChild(chkL);
                     sidebarList.appendChild(btn);
                 });
             }
