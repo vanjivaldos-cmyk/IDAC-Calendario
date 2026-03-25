@@ -910,23 +910,26 @@
             display: block;
             animation: fadeInPanel 0.25s ease;
         }
-        /* Multi-lista: sempre 3 colunas, quebra linha automaticamente */
-        .multi-active-list,
-        .multi-active-list-2 {
+        /* Multi-lista: grid aplicado direto no .events-by-month */
+        .events-by-month.multi-active-list {
             display: grid !important;
             grid-template-columns: repeat(3, 1fr) !important;
             gap: 16px !important;
             align-items: start !important;
             width: 100% !important;
         }
-        /* Exceção: apenas 2 listas → 2 colunas iguais */
-        .multi-active-list-2 {
+        .events-by-month.multi-active-list-2 {
+            display: grid !important;
             grid-template-columns: repeat(2, 1fr) !important;
+            gap: 16px !important;
+            align-items: start !important;
+            width: 100% !important;
         }
-        .multi-active-list .month-events-card,
-        .multi-active-list-2 .month-events-card { display: none !important; }
-        .multi-active-list .month-events-card.active-list-panel,
-        .multi-active-list-2 .month-events-card.active-list-panel {
+        /* No modo multi: esconder todos e mostrar só os ativos */
+        .events-by-month.multi-active-list .month-events-card,
+        .events-by-month.multi-active-list-2 .month-events-card { display: none !important; }
+        .events-by-month.multi-active-list .month-events-card.active-list-panel,
+        .events-by-month.multi-active-list-2 .month-events-card.active-list-panel {
             display: block !important;
             width: 100% !important;
             min-width: 0 !important;
@@ -1161,10 +1164,13 @@
             body.print-list-only .month-events-card { display: block !important; }
             body.print-list-only .month-events-body { display: block !important; }
             /* Grid de 2 colunas para a lista */
-            body.print-list-only #eventsTableContainer > div {
+            body.print-list-only .events-by-month {
                 display: grid !important;
                 grid-template-columns: repeat(2, 1fr) !important;
                 gap: 10px !important;
+            }
+            body.print-list-only .month-events-card {
+                display: block !important;
             }
             body.print-list-only .filters-container { display: none !important; }
             body.print-list-only .events-list h3 {
@@ -1832,6 +1838,9 @@
             const firstBtn = document.getElementById('sidebar-btn-' + [...activeMonths][0]);
             if (firstBtn) firstBtn.scrollIntoView({block:'nearest'});
         }
+        // Conjunto de meses ativos na lista (multi-seleção com Ctrl)
+        const activeListMonths = new Set();
+
         function activateListMonth(monthKey, ctrlKey) {
             if (ctrlKey) {
                 if (activeListMonths.has(monthKey)) {
@@ -1859,16 +1868,16 @@
                 if (btn) btn.classList.add('active-list');
             });
 
-            // Aplicar classe correta baseada no número de listas ativas
-            const listPanel = document.querySelector('.events-list-panel');
+            // Aplicar classe grid direto no .events-by-month
+            const evtsByMonth = document.querySelector('.events-by-month');
             const n = activeListMonths.size;
             ['multi-active-list','multi-active-list-2'].forEach(c => {
-                if (listPanel) listPanel.classList.remove(c);
+                if (evtsByMonth) evtsByMonth.classList.remove(c);
             });
             if (n >= 3) {
-                if (listPanel) listPanel.classList.add('multi-active-list');
+                if (evtsByMonth) evtsByMonth.classList.add('multi-active-list');
             } else if (n === 2) {
-                if (listPanel) listPanel.classList.add('multi-active-list-2');
+                if (evtsByMonth) evtsByMonth.classList.add('multi-active-list-2');
             }
 
             const firstBtn = document.getElementById('list-btn-' + [...activeListMonths][0]);
@@ -2037,6 +2046,15 @@
                                 event.notes ? '📝 ' + event.notes : ''
                             ].filter(Boolean);
 
+                            // Parar propagação no mobile: toque na linha não deve
+                            // repassar o click para o .day pai (evita abrir modal 2x)
+                            line.addEventListener('touchend', (e) => {
+                                e.stopPropagation();
+                            });
+                            line.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                openDayModal(dateKey);
+                            });
                             line.addEventListener('mouseenter', (e) => {
                                 const tt = document.getElementById('eventTooltip');
                                 document.getElementById('tooltipTitle').textContent  = tooltipLines[0];
@@ -2383,7 +2401,12 @@
         }
 
         // ==================== MODAIS ====================
+        // Debounce para evitar duplo disparo no mobile (touch + click)
+        let _lastDayModalCall = 0;
         function openDayModal(dateKey) {
+            const now = Date.now();
+            if (now - _lastDayModalCall < 400) return;
+            _lastDayModalCall = now;
             currentDate = dateKey;
             const dayEvents = sortEventsByTime(events[dateKey] || []);
             
