@@ -1164,12 +1164,8 @@
             body.print-list-only .month-events-card { display: block !important; }
             body.print-list-only .month-events-body { display: block !important; }
             /* Grid de 2 colunas para a lista */
-            body.print-list-only .events-by-month {
-                display: grid !important;
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 10px !important;
-            }
-            body.print-list-only .month-events-card {
+            /* Grid da lista definido dinamicamente pelo printList() */
+            body.print-list-only .month-events-body {
                 display: block !important;
             }
             body.print-list-only .filters-container { display: none !important; }
@@ -2710,35 +2706,50 @@
             document.body.classList.add('print-list-only');
             document.body.classList.remove('print-calendar-only');
 
-            // Garantir que TODOS os meses da lista estão visíveis para imprimir
-            document.querySelectorAll('.month-events-card').forEach(c => {
-                c.dataset.wasHidden = c.style.display;
-                c.style.display = 'block';
+            // Respeitar a seleção atual — só imprimir os meses ativos
+            // Garantir que os corpos dos cards ativos estão visíveis
+            const activeCards = document.querySelectorAll('.month-events-card.active-list-panel');
+            activeCards.forEach(c => {
+                const body = c.querySelector('.month-events-body');
+                if (body) {
+                    body.dataset.wasDisplay = body.style.display;
+                    body.style.display = 'block';
+                }
             });
-            document.querySelectorAll('.month-events-body').forEach(b => {
-                b.dataset.wasHidden = b.style.display;
-                b.style.display = 'block';
-            });
+
+            // Aplicar grid correto baseado no número de meses selecionados
+            const evtsByMonth = document.querySelector('.events-by-month');
+            const n = activeListMonths.size;
+            let gridCols = '1fr';
+            if (n === 2) gridCols = 'repeat(2, 1fr)';
+            else if (n >= 3) gridCols = 'repeat(3, 1fr)';
 
             const styleSheet = document.createElement('style');
             styleSheet.id = 'print-portrait-style';
-            styleSheet.textContent = '@page { size: A4 portrait; margin: 10mm; }';
+            styleSheet.textContent = \`
+                @page { size: A4 portrait; margin: 10mm; }
+                body.print-list-only .events-by-month {
+                    display: grid !important;
+                    grid-template-columns: \${gridCols} !important;
+                    gap: 10px !important;
+                }
+                body.print-list-only .month-events-card { display: none !important; }
+                body.print-list-only .month-events-card.active-list-panel { display: block !important; }
+                body.print-list-only .month-events-body { display: block !important; }
+            \`;
             document.head.appendChild(styleSheet);
 
-            showToast('Preparando impressão da lista (A4 Vertical)...');
+            showToast('Preparando impressão da lista (' + n + ' mês' + (n > 1 ? 'es' : '') + ')...');
 
             setTimeout(() => {
                 window.print();
 
                 // Restaurar estado original
                 document.body.classList.remove('print-list-only');
-                document.querySelectorAll('.month-events-card').forEach(c => {
-                    c.style.display = c.dataset.wasHidden || '';
+                activeCards.forEach(c => {
+                    const body = c.querySelector('.month-events-body');
+                    if (body) body.style.display = body.dataset.wasDisplay || '';
                 });
-                document.querySelectorAll('.month-events-body').forEach(b => {
-                    b.style.display = b.dataset.wasHidden || '';
-                });
-
                 const tempStyle = document.getElementById('print-portrait-style');
                 if (tempStyle) tempStyle.remove();
             }, 500);
