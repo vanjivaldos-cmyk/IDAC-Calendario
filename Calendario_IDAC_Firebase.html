@@ -618,61 +618,179 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        /* ==================== COLAPSO DE MESES ==================== */
-        .month-card.collapsed .weekdays,
-        .month-card.collapsed .days,
-        .month-card.collapsed .month-footer {
-            display: none;
-        }
-        .month-card.collapsed {
-            padding: 10px 15px;
-        }
-        .month-header {
-            cursor: pointer;
-            user-select: none;
+        /* ==================== LAYOUT SIDEBAR + PAINEL ==================== */
+
+        /* --- CALENDÁRIO --- */
+        .calendar-wrapper {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .month-header .collapse-icon {
-            font-size: 0.9rem;
-            transition: transform 0.3s;
-            opacity: 0.7;
-        }
-        .month-card.collapsed .month-header .collapse-icon {
-            transform: rotate(-90deg);
-        }
-        .month-card.current-month {
-            border: 2px solid rgba(255,215,0,0.6);
-            box-shadow: 0 0 15px rgba(255,215,0,0.15);
-        }
-        .month-card.past-month {
-            opacity: 0.75;
+            gap: 0;
+            max-width: 1600px;
+            margin: 0 auto;
+            align-items: flex-start;
         }
 
-        /* Colapso na lista de eventos */
-        .month-events-card .month-events-body {
-            transition: all 0.3s ease;
+        /* Sidebar com lista de meses */
+        .months-sidebar {
+            width: 72px;
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px 0 0 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-right: none;
+            overflow: hidden;
+            position: sticky;
+            top: 10px;
         }
-        .month-events-card.collapsed .month-events-body {
-            display: none;
-        }
-        .month-events-header {
+        .sidebar-month-btn {
+            display: block;
+            width: 100%;
+            padding: 10px 4px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            color: #a0a0a0;
+            font-size: 0.78rem;
+            font-weight: bold;
             cursor: pointer;
-            user-select: none;
+            text-align: center;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
         }
-        .month-events-header .collapse-icon-list {
-            font-size: 0.9rem;
-            transition: transform 0.3s;
-            opacity: 0.7;
-            margin-left: 8px;
+        .sidebar-month-btn:last-child { border-bottom: none; }
+        .sidebar-month-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .sidebar-month-btn.active {
+            background: rgba(255,215,0,0.25);
+            color: #ffd700;
+            border-left: 3px solid #ffd700;
         }
-        .month-events-card.collapsed .month-events-header .collapse-icon-list {
-            transform: rotate(-90deg);
+        .sidebar-month-btn.past { opacity: 0.55; }
+        .sidebar-month-btn .dot-row {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+            margin-top: 3px;
+            flex-wrap: wrap;
         }
-        .month-events-card.current-month-list {
-            border: 2px solid rgba(255,215,0,0.6);
-            box-shadow: 0 0 12px rgba(255,215,0,0.15);
+        .sidebar-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+        }
+
+        /* Painel principal do calendário */
+        .calendar-container {
+            flex: 1;
+            min-width: 0;
+            border-radius: 0 12px 12px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+        }
+        .month-card {
+            display: none; /* escondido por padrão */
+        }
+        .month-card.active-panel {
+            display: block;
+            animation: fadeInPanel 0.25s ease;
+        }
+        @keyframes fadeInPanel {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        /* Remover borda individual dos cards pois o painel já tem borda */
+        .month-card {
+            background: transparent;
+            border: none;
+            padding: 0;
+            backdrop-filter: none;
+        }
+        .month-header {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,215,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .month-header-nav {
+            background: transparent;
+            border: none;
+            color: #ffd700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 0 5px;
+        }
+        .month-header-nav:hover { opacity: 1; }
+
+        /* --- LISTA DE EVENTOS sidebar --- */
+        .list-wrapper {
+            display: flex;
+            gap: 0;
+            max-width: 1600px;
+            margin: 30px auto 0;
+            align-items: flex-start;
+        }
+        .months-sidebar-list {
+            width: 72px;
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px 0 0 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-right: none;
+            overflow: hidden;
+            position: sticky;
+            top: 10px;
+        }
+        .sidebar-month-btn-list {
+            display: block;
+            width: 100%;
+            padding: 10px 4px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            color: #a0a0a0;
+            font-size: 0.78rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .sidebar-month-btn-list:last-child { border-bottom: none; }
+        .sidebar-month-btn-list:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .sidebar-month-btn-list.active-list {
+            background: rgba(255,215,0,0.25);
+            color: #ffd700;
+            border-left: 3px solid #ffd700;
+        }
+        .sidebar-month-btn-list.past-list { opacity: 0.55; }
+        .sidebar-month-btn-list .evt-count-badge {
+            display: inline-block;
+            background: rgba(255,215,0,0.3);
+            color: #ffd700;
+            border-radius: 8px;
+            font-size: 0.6rem;
+            padding: 0 4px;
+            margin-top: 2px;
+        }
+
+        .events-list-panel {
+            flex: 1;
+            min-width: 0;
+            border-radius: 0 12px 12px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+        }
+        .month-events-card { display: none; }
+        .month-events-card.active-list-panel {
+            display: block;
+            animation: fadeInPanel 0.25s ease;
         }
 
 
@@ -697,34 +815,22 @@
                 margin: 5mm;
             }
 
-            /* ===== FORÇAR ABERTURA DE TODOS OS MESES NA IMPRESSÃO ===== */
-            /* Grid calendário: abrir meses colapsados */
-            .month-card.collapsed .weekdays {
-                display: grid !important;
-            }
-            .month-card.collapsed .days {
-                display: grid !important;
-            }
-            .month-card.collapsed .month-footer {
-                display: block !important;
-            }
-            .month-card.collapsed {
-                padding: 4px !important;
-            }
-            /* Esconder ícone de colapso na impressão */
-            .collapse-icon,
-            .collapse-icon-list {
+            ===== IMPRESSÃO: mostrar todos os meses ===== */
+            .months-sidebar, .months-sidebar-list,
+            .month-header-nav {
                 display: none !important;
             }
-            /* Lista de eventos: abrir meses colapsados */
-            .month-events-card.collapsed .month-events-body {
+            .calendar-wrapper, .list-wrapper {
                 display: block !important;
             }
-            /* Remover opacidade dos meses passados na impressão */
-            .month-card.past-month {
-                opacity: 1 !important;
+            .calendar-container, .events-list-panel {
+                border-radius: 0 !important;
+                border: none !important;
+                padding: 0 !important;
             }
-            /* =========================================================== */
+            .month-card { display: block !important; }
+            .month-events-card { display: block !important; }
+            .month-card.past-month { opacity: 1 !important; }
             
             body {
                 background: white !important;
@@ -1036,7 +1142,10 @@
         <button id="adminBtn" onclick="logoutAdmin()" style="padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: bold; background: #6b7280; color: white;">🔐 Admin</button>
     </div>
 
-    <div class="calendar-container" id="calendar"></div>
+    <div class="calendar-wrapper">
+        <nav class="months-sidebar" id="monthsSidebar"></nav>
+        <div class="calendar-container" id="calendar"></div>
+    </div><!-- fim calendar-wrapper -->
 
     <div class="legend">
         <h3>Legenda</h3>
@@ -1057,7 +1166,10 @@
         </div>
     </div>
 
-    <div class="events-list">
+    <div class="list-wrapper">
+        <nav class="months-sidebar-list" id="monthsSidebarList"></nav>
+        <div class="events-list-panel">
+        <div class="events-list" style="margin:0;border:none;padding:0;background:transparent;">
         <h3>📋 Lista Completa de Eventos</h3>
         <div class="filters-container">
             <div class="filters-header">
@@ -1090,7 +1202,9 @@
             </div>
         </div>
         <div id="eventsTableContainer"></div>
-    </div>
+        </div>
+        </div>
+    </div><!-- fim list-wrapper -->
 
     <!-- Modal para dia -->
     <div class="modal-overlay" id="dayModal">
@@ -1583,43 +1697,104 @@
         }
 
         // ==================== CALENDÁRIO ====================
+        const monthAbbr = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        
+        function activateMonth(monthIndex) {
+            document.querySelectorAll('.month-card').forEach(c => c.classList.remove('active-panel'));
+            const card = document.getElementById('month-card-' + monthIndex);
+            if (card) card.classList.add('active-panel');
+            document.querySelectorAll('.sidebar-month-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.getElementById('sidebar-btn-' + monthIndex);
+            if (btn) { btn.classList.add('active'); btn.scrollIntoView({block:'nearest'}); }
+        }
+
+        function activateListMonth(monthKey) {
+            document.querySelectorAll('.month-events-card').forEach(c => c.classList.remove('active-list-panel'));
+            const panel = document.getElementById('list-panel-' + monthKey);
+            if (panel) panel.classList.add('active-list-panel');
+            document.querySelectorAll('.sidebar-month-btn-list').forEach(b => b.classList.remove('active-list'));
+            const btn = document.getElementById('list-btn-' + monthKey);
+            if (btn) { btn.classList.add('active-list'); btn.scrollIntoView({block:'nearest'}); }
+        }
+
         function createCalendar() {
             const container = document.getElementById('calendar');
             container.innerHTML = '';
-            
+            const sidebar = document.getElementById('monthsSidebar');
+            sidebar.innerHTML = '';
+
             const today = new Date();
-            const currentMonth = today.getMonth(); // 0-11
-            const currentYear = today.getFullYear();
-            
+            const currentMonth = today.getMonth();
+            const currentYear  = today.getFullYear();
+
+            const isCurrentMonth = (m) =>
+                (currentYear === 2026 && m === currentMonth) ||
+                (currentYear < 2026 && m === 0) ||
+                (currentYear > 2026 && m === 11);
+            const isPastMonth = (m) =>
+                currentYear === 2026 ? m < currentMonth : currentYear > 2026;
+
+            let defaultMonth = 0;
+
             for (let month = 0; month < 12; month++) {
+                // --- Botão na sidebar ---
+                const btn = document.createElement('button');
+                btn.className = 'sidebar-month-btn';
+                btn.id = 'sidebar-btn-' + month;
+                if (isPastMonth(month)) btn.classList.add('past');
+                btn.onclick = () => activateMonth(month);
+
+                // Abreviação + dots de eventos
+                const monthKey = '2026-' + String(month+1).padStart(2,'0');
+                const monthEvtTypes = [...new Set(
+                    Object.keys(events)
+                        .filter(k => k.startsWith(monthKey))
+                        .flatMap(k => events[k].map(e => e.type))
+                )].slice(0,4);
+
+                const dotColors = {
+                    'especial':'#ffd700','lideranca':'#ff6b6b','tarde-deus':'#4ecdc4',
+                    'curso':'#a855f7','candeias':'#f97316','mulheres':'#ec4899',
+                    'homens':'#3b82f6','ebf':'#22c55e','feriado':'#dc2626',
+                    'copa':'#15803d','eleicao':'#7c3aed','teens':'#f59e0b','outro':'#6b7280'
+                };
+
+                let dotsHtml = '';
+                if (monthEvtTypes.length > 0) {
+                    dotsHtml = '<div class="dot-row">' +
+                        monthEvtTypes.map(t => `<span class="sidebar-dot" style="background:${dotColors[t]||'#888'}"></span>`).join('') +
+                    '</div>';
+                }
+                btn.innerHTML = monthAbbr[month] + dotsHtml;
+                sidebar.appendChild(btn);
+
+                if (isCurrentMonth(month)) defaultMonth = month;
+
+                // --- Card do mês ---
                 const monthCard = document.createElement('div');
                 monthCard.className = 'month-card';
-                
-                // Determinar estado do mês
-                const isCurrentMonth = (currentYear === 2026 && month === currentMonth) ||
-                                       (currentYear < 2026 && month === 0) ||
-                                       (currentYear > 2026 && month === 11);
-                const isPastMonth   = currentYear === 2026 ? month < currentMonth : currentYear > 2026;
-                
-                if (isCurrentMonth) monthCard.classList.add('current-month');
-                if (isPastMonth)    monthCard.classList.add('past-month');
-                if (!isCurrentMonth) monthCard.classList.add('collapsed');
-                
+                monthCard.id = 'month-card-' + month;
+
+                // Header com navegação ◀ ▶
                 const monthHeader = document.createElement('div');
                 monthHeader.className = 'month-header';
-                
+
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'month-header-nav';
+                prevBtn.textContent = '◀';
+                prevBtn.onclick = () => activateMonth((month + 11) % 12);
+
                 const titleSpan = document.createElement('span');
                 titleSpan.textContent = monthNames[month];
+
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'month-header-nav';
+                nextBtn.textContent = '▶';
+                nextBtn.onclick = () => activateMonth((month + 1) % 12);
+
+                monthHeader.appendChild(prevBtn);
                 monthHeader.appendChild(titleSpan);
-                
-                const colIcon = document.createElement('span');
-                colIcon.className = 'collapse-icon';
-                colIcon.textContent = '▼';
-                monthHeader.appendChild(colIcon);
-                
-                monthHeader.onclick = () => {
-                    monthCard.classList.toggle('collapsed');
-                };
+                monthHeader.appendChild(nextBtn);
                 monthCard.appendChild(monthHeader);
                 
                 const weekdaysDiv = document.createElement('div');
@@ -1723,6 +1898,9 @@
                 
                 container.appendChild(monthCard);
             }
+
+            // Ativar mês padrão
+            activateMonth(defaultMonth);
         }
 
         // ==================== FILTROS COM CHECKBOXES ====================
@@ -1939,26 +2117,34 @@
             html += '<div class="events-by-month">';
             
             const todayForList = new Date();
-            const curMonthForList = todayForList.getMonth() + 1; // 1-12
-            const curYearForList  = todayForList.getFullYear();
-            const curMonthKey     = curYearForList + '-' + String(curMonthForList).padStart(2,'0');
+            const curMonthKey = todayForList.getFullYear() + '-' + String(todayForList.getMonth()+1).padStart(2,'0');
+            
+            // Montar sidebar da lista
+            const sidebarList = document.getElementById('monthsSidebarList');
+            if (sidebarList) {
+                sidebarList.innerHTML = '';
+                Object.keys(eventsByMonth).sort().forEach(mk => {
+                    const [y,m] = mk.split('-');
+                    const abbr = monthAbbr[parseInt(m)-1];
+                    const isPast = mk < curMonthKey;
+                    const btn = document.createElement('button');
+                    btn.className = 'sidebar-month-btn-list' + (isPast ? ' past-list' : '');
+                    btn.id = 'list-btn-' + mk;
+                    btn.onclick = () => activateListMonth(mk);
+                    btn.innerHTML = abbr + '<br><span class="evt-count-badge">' + eventsByMonth[mk].length + '</span>';
+                    sidebarList.appendChild(btn);
+                });
+            }
 
             Object.keys(eventsByMonth).sort().forEach(monthKey => {
                 const monthEvents = eventsByMonth[monthKey];
                 const [year, month] = monthKey.split('-');
                 const monthName = monthNames[parseInt(month) - 1];
                 
-                const isCurrentList = monthKey === curMonthKey;
-                const isPastList    = monthKey < curMonthKey;
-                
-                const collapsedClass    = isCurrentList ? '' : 'collapsed';
-                const currentClass      = isCurrentList ? 'current-month-list' : '';
-                const pastClass         = isPastList    ? 'past-month' : '';
-                
                 html += `
-                    <div class="month-events-card ${collapsedClass} ${currentClass} ${pastClass}">
-                        <div class="month-events-header" onclick="this.parentElement.classList.toggle('collapsed')">
-                            <span>📅 ${monthName} <span class='collapse-icon-list'>▼</span></span>
+                    <div class="month-events-card" id="list-panel-${monthKey}">
+                        <div class="month-events-header">
+                            <span>📅 ${monthName}</span>
                             <span class="event-count">${monthEvents.length} evento(s)</span>
                         </div>
                         <div class="month-events-body">
@@ -1987,10 +2173,15 @@
                         </div>
                     </div>
                 `;
-            });
-            
-            html += '</div>';
+            });html += '</div>';
             container.innerHTML = html;
+            
+            // Ativar mês atual (ou primeiro disponível) na lista
+            const todayML = new Date();
+            const defListKey = todayML.getFullYear() + '-' + String(todayML.getMonth()+1).padStart(2,'0');
+            const allListKeys = Object.keys(eventsByMonth).sort();
+            const targetKey = allListKeys.includes(defListKey) ? defListKey : allListKeys[0];
+            if (targetKey) activateListMonth(targetKey);
         }
 
         // ==================== MODAIS ====================
