@@ -1199,7 +1199,7 @@
     <div class="calendar-wrapper">
         <nav class="months-sidebar" id="monthsSidebar">
             <div style="font-size:0.55rem;color:#a0a0a0;text-align:center;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,0.1);line-height:1.3;">
-                <span title="Ctrl+clique para ver vários meses">⌃+clique<br>multi</span>
+                <span title="Ctrl+clique ou toque longo para ver vários meses">⌃/hold<br>multi</span>
             </div>
         </nav>
         <div class="calendar-container" id="calendar"></div>
@@ -1227,7 +1227,7 @@
     <div class="list-wrapper">
         <nav class="months-sidebar-list" id="monthsSidebarList">
             <div style="font-size:0.55rem;color:#a0a0a0;text-align:center;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,0.1);line-height:1.3;">
-                <span title="Ctrl+clique para ver várias listas">⌃+clique<br>multi</span>
+                <span title="Ctrl+clique ou toque longo para ver várias listas">⌃/hold<br>multi</span>
             </div>
         </nav>
         <div class="events-list-panel">
@@ -1902,6 +1902,29 @@
                 btn.id = 'sidebar-btn-' + month;
                 if (isPastMonth(month)) btn.classList.add('past');
                 btn.onclick = (e) => activateMonth(month, e.ctrlKey || e.metaKey);
+                // Long press no mobile = equivalente ao Ctrl+clique
+                let _pressTimer = null;
+                btn.addEventListener('touchstart', (e) => {
+                    _pressTimer = setTimeout(() => {
+                        _pressTimer = null;
+                        activateMonth(month, true); // true = multi
+                        // Feedback tátil se disponível
+                        if (navigator.vibrate) navigator.vibrate(50);
+                    }, 500);
+                }, {passive: true});
+                btn.addEventListener('touchend', (e) => {
+                    if (_pressTimer) {
+                        clearTimeout(_pressTimer);
+                        _pressTimer = null;
+                        // Toque curto = clique normal (já tratado pelo onclick)
+                    } else {
+                        // Long press já foi tratado, evitar o onclick
+                        e.preventDefault();
+                    }
+                });
+                btn.addEventListener('touchmove', () => {
+                    if (_pressTimer) { clearTimeout(_pressTimer); _pressTimer = null; }
+                }, {passive: true});
 
                 // Abreviação + dots de eventos
                 const monthKey = '2026-' + String(month+1).padStart(2,'0');
@@ -2339,6 +2362,26 @@
                     btn.className = 'sidebar-month-btn-list' + (isPast ? ' past-list' : '');
                     btn.id = 'list-btn-' + mk;
                     btn.onclick = (e) => activateListMonth(mk, e.ctrlKey || e.metaKey);
+                    // Long press no mobile = equivalente ao Ctrl+clique
+                    let _pressTimerL = null;
+                    btn.addEventListener('touchstart', (e) => {
+                        _pressTimerL = setTimeout(() => {
+                            _pressTimerL = null;
+                            activateListMonth(mk, true); // true = multi
+                            if (navigator.vibrate) navigator.vibrate(50);
+                        }, 500);
+                    }, {passive: true});
+                    btn.addEventListener('touchend', (e) => {
+                        if (_pressTimerL) {
+                            clearTimeout(_pressTimerL);
+                            _pressTimerL = null;
+                        } else {
+                            e.preventDefault();
+                        }
+                    });
+                    btn.addEventListener('touchmove', () => {
+                        if (_pressTimerL) { clearTimeout(_pressTimerL); _pressTimerL = null; }
+                    }, {passive: true});
                     btn.innerHTML = abbr + '<br><span class="evt-count-badge">' + eventsByMonth[mk].length + '</span>';
                     sidebarList.appendChild(btn);
                 });
