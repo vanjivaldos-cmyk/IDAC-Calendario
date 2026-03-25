@@ -2727,17 +2727,17 @@
 
             const styleSheet = document.createElement('style');
             styleSheet.id = 'print-portrait-style';
-            styleSheet.textContent = \`
+            styleSheet.textContent = `
                 @page { size: A4 portrait; margin: 10mm; }
                 body.print-list-only .events-by-month {
                     display: grid !important;
-                    grid-template-columns: \${gridCols} !important;
+                    grid-template-columns: ${gridCols} !important;
                     gap: 10px !important;
                 }
                 body.print-list-only .month-events-card { display: none !important; }
                 body.print-list-only .month-events-card.active-list-panel { display: block !important; }
                 body.print-list-only .month-events-body { display: block !important; }
-            \`;
+            `;
             document.head.appendChild(styleSheet);
 
             showToast('Preparando impressão da lista (' + n + ' mês' + (n > 1 ? 'es' : '') + ')...');
