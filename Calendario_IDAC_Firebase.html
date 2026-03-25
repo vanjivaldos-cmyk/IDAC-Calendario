@@ -1003,13 +1003,8 @@
                 width: 100% !important;
             }
 
-            /* ===== CALENDÁRIO: 3 colunas, todos os meses abertos ===== */
-            .calendar-container {
-                display: grid !important;
-                grid-template-columns: repeat(3, 1fr) !important;
-                gap: 4px !important;
-            }
-            .month-card { display: block !important; }
+            /* ===== CALENDÁRIO: layout controlado pelo printCalendar() ===== */
+            /* grid e visibilidade dos meses são injetados dinamicamente */
             .month-card.past-month { opacity: 1 !important; }
             .month-card {
                 background: white !important;
@@ -1109,6 +1104,7 @@
         
         /* Versão só calendário para impressão */
         body.print-calendar-only .events-list,
+        body.print-calendar-only .list-wrapper,
         body.print-calendar-only .legend {
             display: none !important;
         }
@@ -2677,29 +2673,34 @@
             document.body.classList.add('print-calendar-only');
             document.body.classList.remove('print-list-only');
 
-            // Garantir que TODOS os meses do calendário estão visíveis
-            document.querySelectorAll('.month-card').forEach(c => {
-                c.dataset.wasHidden = c.style.display;
-                c.style.display = 'block';
-            });
+            // Respeitar seleção atual — só os meses ativos
+            const n = activeMonths.size;
+            let gridCols = '1fr';
+            if (n === 2) gridCols = 'repeat(2, 1fr)';
+            else if (n >= 3) gridCols = 'repeat(3, 1fr)';
 
             const styleSheet = document.createElement('style');
             styleSheet.id = 'print-landscape-style';
-            styleSheet.textContent = '@page { size: A4 landscape; margin: 5mm; }';
+            styleSheet.textContent = `
+                @page { size: A4 landscape; margin: 5mm; }
+                body.print-calendar-only .calendar-container {
+                    display: grid !important;
+                    grid-template-columns: ${gridCols} !important;
+                    gap: 8px !important;
+                }
+                body.print-calendar-only .month-card { display: none !important; }
+                body.print-calendar-only .month-card.active-panel { display: block !important; }
+            `;
             document.head.appendChild(styleSheet);
 
-            showToast('Preparando impressão do calendário (A4 Horizontal)...');
+            showToast('Preparando impressão (' + n + ' mês' + (n > 1 ? 'es' : '') + ')...');
 
             setTimeout(() => {
                 window.print();
                 document.body.classList.remove('print-calendar-only');
-                // Restaurar estado original dos meses
-                document.querySelectorAll('.month-card').forEach(c => {
-                    c.style.display = c.dataset.wasHidden || '';
-                });
                 const tempStyle = document.getElementById('print-landscape-style');
                 if (tempStyle) tempStyle.remove();
-            }, 500);
+            }, 600);
         }
 
         function printList() {
