@@ -1993,7 +1993,10 @@
                 chk.title = 'Selecionar para comparar';
                 chk.addEventListener('change', (e) => {
                     e.stopPropagation();
-                    activateMonth(month, true); // sempre multi ao usar checkbox
+                    activateMonth(month, true);
+                });
+                chk.addEventListener('click', (e) => {
+                    e.stopPropagation(); // impede o clique de subir para o botão pai
                 });
                 btn.appendChild(chk);
                 sidebar.appendChild(btn);
@@ -2418,7 +2421,10 @@
                     chkL.title = 'Selecionar para comparar';
                     chkL.addEventListener('change', (e) => {
                         e.stopPropagation();
-                        activateListMonth(mk, true); // sempre multi ao usar checkbox
+                        activateListMonth(mk, true);
+                    });
+                    chkL.addEventListener('click', (e) => {
+                        e.stopPropagation(); // impede o clique de subir para o botão pai
                     });
                     btn.appendChild(chkL);
                     sidebarList.appendChild(btn);
