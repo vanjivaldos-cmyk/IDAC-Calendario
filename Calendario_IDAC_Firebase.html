@@ -618,6 +618,63 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        /* ==================== COLAPSO DE MESES ==================== */
+        .month-card.collapsed .weekdays,
+        .month-card.collapsed .days,
+        .month-card.collapsed .month-footer {
+            display: none;
+        }
+        .month-card.collapsed {
+            padding: 10px 15px;
+        }
+        .month-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .month-header .collapse-icon {
+            font-size: 0.9rem;
+            transition: transform 0.3s;
+            opacity: 0.7;
+        }
+        .month-card.collapsed .month-header .collapse-icon {
+            transform: rotate(-90deg);
+        }
+        .month-card.current-month {
+            border: 2px solid rgba(255,215,0,0.6);
+            box-shadow: 0 0 15px rgba(255,215,0,0.15);
+        }
+        .month-card.past-month {
+            opacity: 0.75;
+        }
+
+        /* Colapso na lista de eventos */
+        .month-events-card .month-events-body {
+            transition: all 0.3s ease;
+        }
+        .month-events-card.collapsed .month-events-body {
+            display: none;
+        }
+        .month-events-header {
+            cursor: pointer;
+            user-select: none;
+        }
+        .month-events-header .collapse-icon-list {
+            font-size: 0.9rem;
+            transition: transform 0.3s;
+            opacity: 0.7;
+            margin-left: 8px;
+        }
+        .month-events-card.collapsed .month-events-header .collapse-icon-list {
+            transform: rotate(-90deg);
+        }
+        .month-events-card.current-month-list {
+            border: 2px solid rgba(255,215,0,0.6);
+            box-shadow: 0 0 12px rgba(255,215,0,0.15);
+        }
+
 
         .instructions {
             max-width: 1600px;
@@ -639,6 +696,35 @@
                 size: A4 landscape;
                 margin: 5mm;
             }
+
+            /* ===== FORÇAR ABERTURA DE TODOS OS MESES NA IMPRESSÃO ===== */
+            /* Grid calendário: abrir meses colapsados */
+            .month-card.collapsed .weekdays {
+                display: grid !important;
+            }
+            .month-card.collapsed .days {
+                display: grid !important;
+            }
+            .month-card.collapsed .month-footer {
+                display: block !important;
+            }
+            .month-card.collapsed {
+                padding: 4px !important;
+            }
+            /* Esconder ícone de colapso na impressão */
+            .collapse-icon,
+            .collapse-icon-list {
+                display: none !important;
+            }
+            /* Lista de eventos: abrir meses colapsados */
+            .month-events-card.collapsed .month-events-body {
+                display: block !important;
+            }
+            /* Remover opacidade dos meses passados na impressão */
+            .month-card.past-month {
+                opacity: 1 !important;
+            }
+            /* =========================================================== */
             
             body {
                 background: white !important;
@@ -1501,13 +1587,39 @@
             const container = document.getElementById('calendar');
             container.innerHTML = '';
             
+            const today = new Date();
+            const currentMonth = today.getMonth(); // 0-11
+            const currentYear = today.getFullYear();
+            
             for (let month = 0; month < 12; month++) {
                 const monthCard = document.createElement('div');
                 monthCard.className = 'month-card';
                 
+                // Determinar estado do mês
+                const isCurrentMonth = (currentYear === 2026 && month === currentMonth) ||
+                                       (currentYear < 2026 && month === 0) ||
+                                       (currentYear > 2026 && month === 11);
+                const isPastMonth   = currentYear === 2026 ? month < currentMonth : currentYear > 2026;
+                
+                if (isCurrentMonth) monthCard.classList.add('current-month');
+                if (isPastMonth)    monthCard.classList.add('past-month');
+                if (!isCurrentMonth) monthCard.classList.add('collapsed');
+                
                 const monthHeader = document.createElement('div');
                 monthHeader.className = 'month-header';
-                monthHeader.textContent = monthNames[month];
+                
+                const titleSpan = document.createElement('span');
+                titleSpan.textContent = monthNames[month];
+                monthHeader.appendChild(titleSpan);
+                
+                const colIcon = document.createElement('span');
+                colIcon.className = 'collapse-icon';
+                colIcon.textContent = '▼';
+                monthHeader.appendChild(colIcon);
+                
+                monthHeader.onclick = () => {
+                    monthCard.classList.toggle('collapsed');
+                };
                 monthCard.appendChild(monthHeader);
                 
                 const weekdaysDiv = document.createElement('div');
@@ -1826,15 +1938,27 @@
             let html = `<p style="text-align: right; font-size: 0.8rem; color: #a0a0a0; margin-bottom: 15px;">📊 ${allEvents.length} evento(s) encontrado(s)</p>`;
             html += '<div class="events-by-month">';
             
+            const todayForList = new Date();
+            const curMonthForList = todayForList.getMonth() + 1; // 1-12
+            const curYearForList  = todayForList.getFullYear();
+            const curMonthKey     = curYearForList + '-' + String(curMonthForList).padStart(2,'0');
+
             Object.keys(eventsByMonth).sort().forEach(monthKey => {
                 const monthEvents = eventsByMonth[monthKey];
                 const [year, month] = monthKey.split('-');
                 const monthName = monthNames[parseInt(month) - 1];
                 
+                const isCurrentList = monthKey === curMonthKey;
+                const isPastList    = monthKey < curMonthKey;
+                
+                const collapsedClass    = isCurrentList ? '' : 'collapsed';
+                const currentClass      = isCurrentList ? 'current-month-list' : '';
+                const pastClass         = isPastList    ? 'past-month' : '';
+                
                 html += `
-                    <div class="month-events-card">
-                        <div class="month-events-header">
-                            <span>📅 ${monthName}</span>
+                    <div class="month-events-card ${collapsedClass} ${currentClass} ${pastClass}">
+                        <div class="month-events-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                            <span>📅 ${monthName} <span class='collapse-icon-list'>▼</span></span>
                             <span class="event-count">${monthEvents.length} evento(s)</span>
                         </div>
                         <div class="month-events-body">
