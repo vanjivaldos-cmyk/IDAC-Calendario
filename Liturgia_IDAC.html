@@ -1897,31 +1897,10 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
         // SISTEMA DE NOTIFICAÇÕES WHATSAPP
         // ========================================
         
-        // Cadastro de contatos padrão (nome -> telefone)
-        const contatosPadrao = {
-            'Bp. Vanjivaldo': '61984945302',
-            'Diác. Bruno': '61982593963',
-            'Diác. Eli Regina': '61998786419',
-            'Diác. Eunice': '61996636388',
-            'Diác. Flávio': '61982603507',
-            'Diác. Junio': '61983395790',
-            'Diác. Kêmille': '61981770117',
-            'Diác. Marcos': '61981547869',
-            'Diác. Myriam': '61981234192',
-            'Diác. Selene': '61996757007',
-            'Ev. Silvana': '61981722189',
-            'Pb. José': '62981393566',
-            'Pr. Domício': '61982128102',
-            'Pr. José Lourenço': '61983351186',
-            'Pr. Tadeu': '61995103759',
-            'Pra. Domingas': '61983838084',
-            'Pra. Jaqueline': '61996618562',
-            'Pra. Kélia': '61985141597',
-            'Pra. Leonilda': '62985898548',
-            'Pra. Maria Pereira': '61999938730',
-            'Pra. Miguelina': '61982130960',
-            'Pra. Nelcy': '61991150398'
-        };
+        // Contatos dos responsáveis: moram SÓ no Firebase (nó contatos_responsaveis),
+        // editados pelo admin desta página. Até 11/2026 havia aqui uma lista de
+        // nomes e telefones, que ficava pública no código; ela saiu do código.
+        const contatosPadrao = {};
         
         // Cadastro de contatos (nome -> telefone)
         let contatosResponsaveis = {};
@@ -1944,7 +1923,7 @@ _Igreja de Deus Águas Claras - IDAC_</textarea>
                 console.log('Contatos carregados:', Object.keys(contatosResponsaveis).length);
                 
                 // Se não tinha nada salvo, salvar os padrão
-                if (Object.keys(contatosSalvos).length === 0) {
+                if (Object.keys(contatosSalvos).length === 0 && Object.keys(contatosPadrao).length > 0) {
                     contatosRef.set(contatosPadrao).then(() => {
                         console.log('Contatos padrão salvos no Firebase');
                     });
